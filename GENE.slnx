@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="C:/Users/Joe/source/repos/LoggerLib/JLogger/JLogger.csproj" />
+  <Project Path="GENE.Basic/GENE.Basic.csproj" />
+  <Project Path="GENE.CLI/GENE.CLI.csproj" Id="fb68a84c-4467-4bab-a3f4-dc8b147a267b" />
+  <Project Path="GENE.JoeRoom/GENE.JoeRoom.csproj" Id="006f7ff7-18ad-4ef5-acd9-e961e3ab2719" />
+  <Project Path="GENE/GENE.csproj" />
+</Solution>
