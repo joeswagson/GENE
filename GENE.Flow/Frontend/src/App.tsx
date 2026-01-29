@@ -30,6 +30,10 @@ const nodeTypes = {
   CustomResizerNode,
 };
 
+const edgeTypes = {
+  default: SmoothStepEdge
+}
+
 const nodeDefaults = {
   sourcePosition: Position.Right,
   targetPosition: Position.Left,
@@ -65,7 +69,6 @@ const initialNodes = [
     ...nodeDefaults,
   },
 ];
-
 const initialEdges = [
   {
     id: 'e1-2',
@@ -88,12 +91,6 @@ const initialEdges = [
   },
 ];
 
-
-export function ClearNodes() {
-  
-}
-
-
 const App = () => {
   const LOCALS = {
     snapGrid: 20
@@ -111,7 +108,6 @@ const App = () => {
     setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds));
   }, [setEdges]);
 
-
   const onConnect = useCallback((connection) => {
     setEdges((eds) => addEdge(connection, eds));
   }, [setEdges]);
@@ -125,6 +121,7 @@ const App = () => {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onReconnect={onReconnect}
