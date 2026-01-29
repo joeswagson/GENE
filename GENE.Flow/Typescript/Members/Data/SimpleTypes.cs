@@ -2,11 +2,15 @@ using JetBrains.Annotations;
 
 namespace GENE.Flow.Typescript.Members.Data;
 
-public sealed class SimpleType<T>(string friendlyName, Func<string, T> construct, bool nullable = false) : ITypeDefinition<T>
+public sealed class SimpleType<T>(string friendlyName, Func<string, T> construct, bool nullable = false)
+    : ITypeDefinition<T>
 {
     public bool Nullable => nullable || System.Nullable.GetUnderlyingType(typeof(T)) != null;
     public string FriendlyName { get; } = friendlyName;
-    public T Construct(string serialized) => construct(serialized) ?? throw new NullReferenceException($"Failed to construct type {FriendlyName} because the handler returned null.");
+
+    public T Construct(string serialized) => construct(serialized) ??
+                                             throw new NullReferenceException(
+                                                 $"Failed to construct type {FriendlyName} because the handler returned null.");
 }
 
 public static class SimpleTypes
@@ -30,11 +34,12 @@ public static class SimpleTypes
     public static readonly SimpleType<ushort> UInt16 = new("ushort", ushort.Parse);
     public static readonly SimpleType<string> String = new("string", s => s);
     public static readonly SimpleType<object> Object = new("object", s => s);
-    
+
     // I don't like the float .NET type being called a Single; pick a lane.
     public static readonly SimpleType<float> Float = Single;
-    
+
     #endregion
+
     #region Nullable
 
     public static readonly SimpleType<bool?> NullableBool = new("bool", s => bool.Parse(s));
@@ -54,8 +59,8 @@ public static class SimpleTypes
     public static readonly SimpleType<ushort?> NullableUInt16 = new("ushort", s => ushort.Parse(s));
     public static readonly SimpleType<string?> NullableString = new("string", s => s);
     public static readonly SimpleType<object?> NullableObject = new("object", s => s);
-    
+
     public static readonly SimpleType<float?> NullableFloat = NullableSingle;
-    
+
     #endregion
 }
