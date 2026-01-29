@@ -30,25 +30,10 @@ public class TypistCommand : Command
         if (type is null || type.IsAssignableFrom(typeof(INode)))
             throw new ArgumentException($"{className} could not be found or does not implement {nameof(INode)}.");
 
-        var typistNode = Typist.Create(type);
-        var inode = type.GetInterfaces()
-            .FirstOrDefault(i => i.IsGenericType &&
-                                 i.GetGenericTypeDefinition() == typeof(INode<,>));
-        if (inode is not null)
-        {
-            var genericTypes = inode.GetGenericArguments();
-            var typistPayload = Typist.Create(genericTypes[0]);
-            var typistResponse = Typist.Create(genericTypes[1]);
-
-            logger.Info("Payload:");
-            logger.InfoSplit(typistPayload.ToString());
-            logger.Newline();
-            logger.Info("Response:");
-            logger.InfoSplit(typistResponse.ToString());
-            logger.Newline();
-        }
-
-        logger.Info(type.FullName);
-        logger.InfoSplit(typistNode.ToString());
+        var typistNode = Typist.Convert(type, typeof(SmartThingsAction), typeof(WebResponse));
+        
+        logger.InfoSplit(typistNode.Root.ToString());
+        logger.InfoSplit(typistNode.Payload?.ToString() ?? "no payload");
+        logger.InfoSplit(typistNode.Response?.ToString() ?? "no response");
     }
 }
