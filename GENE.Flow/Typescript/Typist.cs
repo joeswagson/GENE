@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text;
 using GENE.Flow.Typescript.Members;
 using GENE.Flow.Typescript.Members.Data;
+using GENE.Nodes;
 using JetBrains.Annotations;
 
 namespace GENE.Flow.Typescript;
@@ -14,6 +15,7 @@ public class NodeMemberAttribute(string? nameOverride = null) : Attribute;
 /// </summary>
 public static class Typist
 {
+    // wtf is this rider
     private static readonly Dictionary<Type, ITypeDefinition> Simples = new() {
         {
             typeof(bool), SimpleTypes.Bool
@@ -98,11 +100,13 @@ public static class Typist
         public string FriendlyName => $"[{string.Join(", ", elementDefinitions.Select(t => t.ToString()))}]";
     }
 
-    public static NodeConverter Create(Type type) => new(type);
-
+    /// <summary>
+    /// Converts a type into two buckets of method definitions for typescript-compliant node interfaces. 
+    /// </summary>
     public class NodeConverter : ITypeScriptDefinition
     {
-        private Type _type;
+        private readonly Type _type;
+        public Type[]? Interfaces;
         public IMember[] Signal;
         public IMember[] Output;
 
@@ -110,7 +114,7 @@ public static class Typist
         {
             var sb = new StringBuilder();
             sb.AppendLine($"interface {_type.Name} {{");
-            
+
             sb.AppendLine("\tsignals: {");
             foreach (var signal in Signal)
                 sb.AppendLine($"\t\t{signal.ToString()};");
@@ -125,9 +129,11 @@ public static class Typist
             return sb.ToString();
         }
 
-        public NodeConverter(Type type)
+        public NodeConverter(Type type, Type[]? interfaces = null)
         {
             _type = type;
+            Interfaces = interfaces;
+            
             List<IMember> signal = [];
             List<IMember> output = [];
 
@@ -225,7 +231,9 @@ public static class Typist
                     nullable
                 );
             }
-
+            
+            if(Interfaces?.Any(t=>t.Name == type.Name) ?? false)
+                return new SimpleType<object>(type.Name, s=>s, nullable);
 
             return nullable ? AnyType.NullInstance : AnyType.Instance;
         }
@@ -254,6 +262,29 @@ public static class Typist
 
             var functionType = new FunctionType(paramMembers, returnType);
             return new Member(method.Name, functionType);
+        }
+    }
+
+    public static TypistNode Convert(Type type, params Type[] interfaces) => new(type, interfaces);
+    public class TypistNode
+    {
+        public readonly NodeConverter Root;
+        public readonly NodeConverter? Payload;
+        public readonly NodeConverter? Response;
+
+        public TypistNode(Type type, Type[]? interfaces = null)
+        {
+            if (type.IsAssignableFrom(typeof(INode)))
+                throw new ArgumentException($"{type.Name} does not implement {nameof(INode)}.");
+
+            Root = new NodeConverter(type, interfaces);
+            var inode = type.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType &&
+                                     i.GetGenericTypeDefinition() == typeof(INode<,>));
+            if (inode is null) return;
+            var genericTypes = inode.GetGenericArguments();
+            Payload = new NodeConverter(genericTypes[0], interfaces);
+            Response = new NodeConverter(genericTypes[1], interfaces);
         }
     }
 }
