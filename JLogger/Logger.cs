@@ -8,25 +8,30 @@ using System.Threading.Tasks;
 
 namespace JLogger
 {
-    public class Logger(string tag, Color? tagColor = null, float tagBrightnessMultiplier = 1.2f, bool debug = false) {
-
+    public class Logger(string tag, Color? tagColor = null, float tagBrightnessMultiplier = 1.2f, bool debug = false)
+    {
         private static string FixedRepeat(string repeat, int count)
         {
             return string.Concat(Enumerable.Repeat(repeat, count / repeat.Length));
         }
+
         private static void PadConsole(int count)
         {
             for (int i = 0; i < count; i++)
                 Console.WriteLine();
         }
+
         private static string SpaceTextInMiddleOfText(string source, string target)
         {
             return new string(' ', Math.Max(0, source.Length / 2 - target.Length / 2)) + target;
         }
-        private static string HalfSpaceTextInMiddleOfTextThatsSoUselessItsBasicallyAHardcodedMethod(string source, string target)
+
+        private static string HalfSpaceTextInMiddleOfTextThatsSoUselessItsBasicallyAHardcodedMethod(string source,
+            string target)
         {
             return new string(' ', (int)(Math.Max(0, source.Length / 2 - target.Length / 2) / 1.5)) + target;
         }
+
         private static string[] MultiLineSpaceString(string source, string target)
         {
             string[] lines = target.Split('\n');
@@ -36,10 +41,12 @@ namespace JLogger
                 string line = lines[i];
                 output[i] = SpaceTextInMiddleOfText(FixedRepeat(source, source.Length), line);
             }
+
             return output;
         }
 
-        public static void LogHeader(string headerCharacter, string text, Color headerColor, Color textColor, int padding, string disposable = "*")
+        public static void LogHeader(string headerCharacter, string text, Color headerColor, Color textColor,
+            int padding, string disposable = "*")
         {
             string header = FixedRepeat(headerCharacter, Console.WindowWidth).Pastel(headerColor);
             Console.WriteLine(header);
@@ -80,12 +87,36 @@ namespace JLogger
 
                 switch (sextant)
                 {
-                    case 0: r = v; g = mid1; b = m; break;
-                    case 1: r = mid2; g = v; b = m; break;
-                    case 2: r = m; g = v; b = mid1; break;
-                    case 3: r = m; g = mid2; b = v; break;
-                    case 4: r = mid1; g = m; b = v; break;
-                    case 5: r = v; g = m; b = mid2; break;
+                    case 0:
+                        r = v;
+                        g = mid1;
+                        b = m;
+                        break;
+                    case 1:
+                        r = mid2;
+                        g = v;
+                        b = m;
+                        break;
+                    case 2:
+                        r = m;
+                        g = v;
+                        b = mid1;
+                        break;
+                    case 3:
+                        r = m;
+                        g = mid2;
+                        b = v;
+                        break;
+                    case 4:
+                        r = mid1;
+                        g = m;
+                        b = v;
+                        break;
+                    case 5:
+                        r = v;
+                        g = m;
+                        b = mid2;
+                        break;
                 }
             }
 
@@ -108,6 +139,7 @@ namespace JLogger
             (int r, int g, int b) = HSL2RGB(hue, saturation / amount, brightness * amount);
             return Color.FromArgb(1, r, g, b);
         }
+
         private static Color saturateColor(Color input, float amount)
         {
             float hue = input.GetHue() / 360;
@@ -118,7 +150,6 @@ namespace JLogger
             (int r, int g, int b) = HSL2RGB(hue, saturation * amount, brightness);
             return Color.FromArgb(1, r, g, b);
         }
-
 
 
         public static Color ERROR_TAG_COLOR { get; internal set; } = Color.IndianRed;
@@ -132,6 +163,7 @@ namespace JLogger
             string colortag = tag.Pastel(brightenColor(saturateColor(color, 1.5f), 1.2f));
             return $"{leading}{colortag}{trailing} ";
         }
+
         private string getTagString()
         {
             return GetFormattedTag(Tag, TagColor);
@@ -140,6 +172,7 @@ namespace JLogger
             //string colortag = Tag.Pastel(brightenColor(TagColor, 1.2f));
             //return $"{leading}{colortag}{trailing} ";
         }
+
         public static string GetErrorTag()
         {
             return GetFormattedTag("ERROR", ERROR_TAG_COLOR);
@@ -148,6 +181,7 @@ namespace JLogger
             //string colortag = "ERROR".Pastel(brightenColor(saturateColor(ERROR_TAG_COLOR, 1.5f), 1.2f));
             //return $"{leading}{colortag}{trailing} ";
         }
+
         public static string GetWarnTag()
         {
             return GetFormattedTag("WARN", WARN_TAG_COLOR);
@@ -156,6 +190,7 @@ namespace JLogger
             //string colortag = "WARN".Pastel(brightenColor(WARN_TAG_COLOR, 1.2f));
             //return $"{leading}{colortag}{trailing} ";
         }
+
         public static string GetDebugTag()
         {
             return GetFormattedTag("DEBUG", DEBUG_TAG_COLOR);
@@ -194,6 +229,13 @@ namespace JLogger
         {
             PadConsole(count);
         }
+
+        public void InfoSplit(string multiline)
+        {
+            foreach (var line in multiline.Split('\n'))
+                Log(LogStyle.Info, line);
+        }
+
         public void Info(params object?[] args)
         {
             //Console.WriteLine(getTagString() + string.Join(' ', args));
@@ -217,11 +259,13 @@ namespace JLogger
             //Console.WriteLine(getTagString() + GetDebugTag() + string.Join(' ', args));
             Log(LogStyle.Debug, args);
         }
+
         public void ErrorDebug(params object?[] args)
         {
             //Console.WriteLine(getTagString() + GetErrorTag() + GetDebugTag() + string.Join(' ', args));
             Log(LogStyle.Error | LogStyle.Debug, args);
         }
+
         public void WarnDebug(params object?[] args)
         {
             //Console.WriteLine(getTagString() + GetWarnTag() + GetDebugTag() + string.Join(' ', args));
@@ -241,6 +285,7 @@ namespace JLogger
         {
             LogInternal(style, true, args);
         }
+
         public void LogNewline(LogStyle style, bool newline = true, params object?[] args)
         {
             LogInternal(style, newline, args);
@@ -254,10 +299,12 @@ namespace JLogger
             {
                 output.Append(GetWarnTag());
             }
+
             if ((style & LogStyle.Error) == LogStyle.Error)
             {
                 output.Append(GetErrorTag());
             }
+
             if ((style & LogStyle.Debug) == LogStyle.Debug)
             {
                 if (!IsDebug)

@@ -9,9 +9,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GENE.Basic\GENE.Basic.csproj" />
+    <ProjectReference Include="..\GENE.Flow\GENE.Flow.csproj" />
     <ProjectReference Include="..\GENE.JoeRoom\GENE.JoeRoom.csproj" />
     <ProjectReference Include="..\GENE\GENE.csproj" />
-    <ProjectReference Include="C:\Users\Joe\source\repos\LoggerLib\JLogger\JLogger.csproj" />
+    <ProjectReference Include="..\JLogger\JLogger.csproj" />
   </ItemGroup>
 
 </Project>

@@ -11,6 +11,7 @@ using System.Text;
 namespace GENE.CLI {
     public static class Meta {
         public const string VERSION = "1.0.0";
+        public const bool DEBUG = true;
     }
     public class Program {
         static string[] ParseArgs(string input)
@@ -18,10 +19,10 @@ namespace GENE.CLI {
             var args = new List<string>();
             var current = new StringBuilder();
 
-            bool inQuotes = false;
-            bool escape = false;
+            var inQuotes = false;
+            var escape = false;
 
-            foreach (char c in input)
+            foreach (var c in input)
             {
                 if (escape)
                 {
@@ -30,16 +31,14 @@ namespace GENE.CLI {
                     continue;
                 }
 
-                if (c == '\\')
+                switch (c)
                 {
-                    escape = true;
-                    continue;
-                }
-
-                if (c == '"')
-                {
-                    inQuotes = !inQuotes;
-                    continue;
+                    case '\\':
+                        escape = true;
+                        continue;
+                    case '"':
+                        inQuotes = !inQuotes;
+                        continue;
                 }
 
                 if (char.IsWhiteSpace(c) && !inQuotes)
@@ -62,9 +61,10 @@ namespace GENE.CLI {
         }
 
 
-        public static readonly Logger logger = new("gene", Color.CornflowerBlue);
+        public static readonly Logger logger = new("gene", Color.CornflowerBlue, debug: Meta.DEBUG);
         public static NodeCluster? CurrentCluster;
-        static void Main(string[] args)
+
+        private static void Main(string[] args)
         {
             logger.Info("GENE CLI");
             logger.Info("- General Environment Node Engine");
@@ -98,7 +98,7 @@ namespace GENE.CLI {
                         if (cArgs.Length == 1 && cArgs[0] == "?")
                             logger.Info(commandObject.Help().ToString());
                         else
-                            commandObject.Execute(cArgs);
+                            commandObject.ExecuteInternal(cArgs);
                     else
                         logger.Error("Command", command, "not found.");
                 } catch (Exception e)
@@ -106,6 +106,8 @@ namespace GENE.CLI {
                     logger.Error($"An error occured while executing command \"{command}\")");
                     logger.Error($"- Error: {e.Message}");
                     logger.Error($"- Arguments:", cArgs);
+                    logger.Debug(e.Message);
+                    logger.Debug(e.StackTrace);
                 }
             }
             //var action = SmartActions.Light(light.Name, pat);

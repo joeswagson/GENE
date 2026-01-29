@@ -134,8 +134,8 @@ namespace GENE.CLI.Commands {
         }
 
         public override Usage Help() => new(
-            "Controls SmartThings devices (lights, TVs, audio).",
             Identifier,
+            "Controls SmartThings devices (lights, TVs, audio).",
             new Argument("device", true),
             new Argument("action", true),
             new Argument("args...", false)

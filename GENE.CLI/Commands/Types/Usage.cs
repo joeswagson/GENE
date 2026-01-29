@@ -12,10 +12,10 @@ namespace GENE.CLI.Commands.Types {
         public List<Argument>? Arguments { get; private set; }
 
         private string? overwriteUsage;
-        public Usage(string description, string command, params Argument[] arguments)
+        public Usage(string command, string description, params Argument[] arguments)
         {
-            Description = description;
             Command = command;
+            Description = description;
             Arguments = arguments.ToList();
         }
         public Usage(string customUsage)
@@ -32,14 +32,16 @@ namespace GENE.CLI.Commands.Types {
             else
             {
                 StringBuilder sb = new StringBuilder();
+                sb.Append(Command);
+                sb.Append(" - ");
                 sb.Append(Description);
                 sb.Append(" | Usage: ");
                 sb.Append(Command);
                 if (Arguments != null)
                 {
-                    foreach (Argument arg in Arguments)
+                    foreach (var arg in Arguments)
                     {
-                        sb.Append(" ");
+                        sb.Append(' ');
                         sb.Append(arg.ToString());
                     }
                 }

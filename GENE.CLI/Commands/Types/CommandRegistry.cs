@@ -36,6 +36,7 @@ namespace GENE.CLI.Commands.Types
             {
                 RegisterCommand(new HelpCommand());
                 RegisterCommand(new SmartCommand());
+                RegisterCommand(new TypistCommand());
                 return true;
             }
             catch

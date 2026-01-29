@@ -7,6 +7,7 @@ public class SocketDaemon(int port=10070)
 {
     public readonly int Port = port;
     
+    public readonly CancellationTokenSource cts = new CancellationTokenSource();
     private TcpListener _listener = new(IPAddress.Loopback,  port);
     public void Start()
     {
@@ -16,11 +17,11 @@ public class SocketDaemon(int port=10070)
     public async void Listen()
     {
         while (true)
-            ClientStream(await _listener.AcceptTcpClientAsync());
+            ClientStream(await _listener.AcceptSocketAsync(cts.Token));
     }
 
-    public async void ClientStream(TcpClient client)
+    public async void ClientStream(Socket client)
     {
-        var stream = client.GetStream();
+        
     }
 }

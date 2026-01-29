@@ -6,8 +6,8 @@ using System.Text.Json;
 
 namespace GENE.Basic.Nodes.SmartThings {
     public class WebResponse : NodeResponse {
-        public int StatusCode;
-        public string? RawJson;
+        public int StatusCode { get; set; }
+        public string? RawJson { get; set; }
     }
 
     public sealed class SmartThingsCommand {
@@ -22,9 +22,8 @@ namespace GENE.Basic.Nodes.SmartThings {
     }
 
     public class SmartThingsAction(string token, params SmartThingsCommand[] Commands) : NodePayload {
-        public string Token { get; } = token;
-
-        public SmartThingsCommand[] Commands = Commands;
+        public string Token { internal get; set; } = token;
+        public SmartThingsCommand[] Commands { get; set; } = Commands;
     }
     public class SmartThingsDevice(string name, string id) : INode<SmartThingsAction, WebResponse> {
         public string Name => name;
