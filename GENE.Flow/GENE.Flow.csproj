@@ -4350,4 +4350,8 @@
       <Folder Include="Frontend\node_modules\.vite-temp\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\GENE\GENE.csproj" />
+    </ItemGroup>
+
 </Project>
