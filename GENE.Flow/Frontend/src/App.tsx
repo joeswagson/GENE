@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback, useState, type ChangeEventHandler } from 'react';
 import {
   ReactFlow,
   Background,
@@ -10,7 +10,7 @@ import {
   addEdge,
   Position,
   MarkerType,
-  useNodes,
+  useNodes, ColorMode, Panel, StraightEdge, SmoothStepEdge,
 } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
@@ -98,11 +98,14 @@ const App = () => {
   const LOCALS = {
     snapGrid: 20
   };
-
-  window.LOCALS = LOCALS;
-
+  
+  const [colorMode, setColorMode] = useState<ColorMode>('dark');
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  
+  const onChange: ChangeEventHandler<HTMLSelectElement> = (evt) => {
+    setColorMode(evt.target.value as ColorMode);
+  };
 
   const onReconnect = useCallback((oldEdge, newConnection) => {
     setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds));
@@ -127,11 +130,24 @@ const App = () => {
         onReconnect={onReconnect}
         onConnect={onConnect}
         snapGrid={[LOCALS.snapGrid, LOCALS.snapGrid]}
+        colorMode={colorMode}
         snapToGrid
         fitView
       >
         <Controls />
         <Background />
+
+        <Panel position="top-right">
+          <select
+              className="xy-theme__select"
+              onChange={onChange}
+              data-testid="colormode-select"
+          >
+            <option value="dark">dark</option>
+            <option value="light">light</option>
+            <option value="system">system</option>
+          </select>
+        </Panel>
       </ReactFlow>
     </>
   );
