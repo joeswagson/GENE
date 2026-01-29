@@ -12,9 +12,8 @@ public class FunctionType(Member[] @params, ITypeDefinition? @return) : ITypeDef
 
         sb.Append('(');
         sb.AppendJoin(", ", @params.Select(param => param.ToString()));
-        sb.Append(")=>");
+        sb.Append(") => ");
         sb.Append(@return?.FriendlyName ?? "void");
-        sb.Append(';');
 
         return sb.ToString();
     }
