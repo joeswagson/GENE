@@ -1,165 +1,123 @@
-import { useCallback, useState, type ChangeEventHandler } from 'react';
+import { useCallback, useState, type ChangeEventHandler } from "react";
 import {
-  ReactFlow,
-  Background,
-  Controls,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  reconnectEdge,
-  addEdge,
-  Position,
-  MarkerType,
-  useNodes, ColorMode, Panel, StraightEdge, SmoothStepEdge,
-} from '@xyflow/react';
+    ReactFlow,
+    Background,
+    Controls,
+    Panel,
+    addEdge,
+    reconnectEdge,
+    useNodesState,
+    useEdgesState,
+    Position,
+    SmoothStepEdge,
+} from "@xyflow/react";
 
-import '@xyflow/react/dist/style.css';
-import './main.css'
+import "@xyflow/react/dist/style.css";
+import "./main.css";
 
-import { Header } from './static/Header';
+import { Header } from "./static/Header";
+import { SignalNode, OutputNode, BridgeNode } from "./nodes/Node";
+import { exampleNodes, exampleEdges } from "./exampleNodes";
+import { NodeData, EdgeData, DataType } from "./types";
+import { Globals } from "./static/global";
 
-import ResizableNode from './nodes/ResizableNode';
-import ResizableNodeSelected from './nodes/ResizableNodeSelected';
-import CustomResizerNode from './nodes/CustomResizerNode';
-import SignalNode from './nodes/SignalNode';
-import OutputNode from './nodes/OutputNode';
-import BridgeNode from './nodes/BridgeNode';
-import CustomEdge from './edges/CustomEdge';
-import { Globals } from './static/global';
-import { exampleNodes, exampleEdges } from './exampleNodes';
+// --- Node + edge types ---
+const nodeTypes = { SignalNode, OutputNode, BridgeNode };
+const edgeTypes = { default: SmoothStepEdge };
 
-
-const nodeTypes = {
-  ResizableNode,
-  ResizableNodeSelected,
-  CustomResizerNode,
-  SignalNode,
-  OutputNode,
-  BridgeNode,
+// --- Type compatibility ---
+const canConnect = (from: DataType, to: DataType) => {
+    if (from === to) return true;
+    const bridges = new Set(["string->boolean", "number->string", "object->boolean"]);
+    return bridges.has(`${from}->${to}`);
 };
 
-const edgeTypes = {
-  default: SmoothStepEdge,
-  custom: CustomEdge,
+// --- Helpers ---
+function getHandleType(nodeId: string, handleId: string, nodes: NodeData[]): DataType | null {
+    const node = nodes.find((n) => n.nodeId === nodeId);
+    if (!node) return null;
+    const all = [...(node.signals ?? []), ...(node.outputs ?? [])];
+    const method = all.find((m) => `${m.name}` === handleId.split("-").pop());
+    return method?.type ?? null;
 }
 
-const nodeDefaults = {
-  sourcePosition: Position.Right,
-  targetPosition: Position.Left,
-};
-/*
-const initialNodes = [
-  {
-    id: '1',
-    type: 'OutputNode',
-    position: { x: 0, y:100 },
-    data: { label: 'default style 1' },
-    ...nodeDefaults,
-  },
-  {
-    id: '2',
-    type: 'InputNode',
-    position: { x: 300, y: 0 },
-    data: { label: 'default style 2' },
-    ...nodeDefaults,
-  },
-  {
-    id: '3',
-    type: 'InputNode',
-    position: { x: 300, y: 100 },
-    data: { label: 'default style 3' },
-    ...nodeDefaults,
-  },
-  {
-    id: '4',
-    type: 'InputNode',
-    position: { x: 300, y: 200 },
-    data: { label: 'default style 4' },
-    ...nodeDefaults,
-  },
-];
-const initialEdges = [
-  {
-    id: 'e1-2',
-    source: '1',
-    target: '2',
-    animated: true,
-    markerEnd: { type: MarkerType.ArrowClosed },
-  },
-  {
-    id: 'e1-3',
-    source: '1',
-    target: '3',
-    markerEnd: { type: MarkerType.ArrowClosed },
-  },
-  {
-    id: 'e1-4',
-    source: '1',
-    target: '4',
-    markerEnd: { type: MarkerType.ArrowClosed },
-  },
-];
-*/
-const initialNodes = exampleNodes;
-const initialEdges = exampleEdges;
-
+// --- App ---
 const App = () => {
-  const LOCALS = {
-    snapGrid: 20
-  };
-  
-  const [colorMode, setColorMode] = useState<ColorMode>('dark');
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  
-  const onChange: ChangeEventHandler<HTMLSelectElement> = (evt) => {
-    setColorMode(evt.target.value as ColorMode);
-  };
+    const [nodes, setNodes, onNodesChange] = useNodesState(exampleNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(exampleEdges);
+    const [colorMode, setColorMode] = useState<"dark" | "light" | "system">("dark");
 
-  const onReconnect = useCallback((oldEdge, newConnection) => {
-    setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds));
-  }, [setEdges]);
+    const onChange: ChangeEventHandler<HTMLSelectElement> = (evt) =>
+        setColorMode(evt.target.value as "dark" | "light" | "system");
 
-  const onConnect = useCallback((connection) => {
-    setEdges((eds) => addEdge(connection, eds));
-  }, [setEdges]);
+    const onReconnect = useCallback(
+        (oldEdge: any, newConnection: any) => setEdges((eds) => reconnectEdge(oldEdge, newConnection, eds)),
+        []
+    );
 
-  Globals.Nodes = nodes;
+    const onConnect = useCallback(
+        (connection: any) => {
+            const fromType = getHandleType(connection.source, connection.sourceHandle, nodes);
+            const toType = getHandleType(connection.target, connection.targetHandle, nodes);
+            const valid = fromType !== null && toType !== null && canConnect(fromType, toType);
 
-  return (
-    <>
-      <Header />
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onReconnect={onReconnect}
-        onConnect={onConnect}
-        snapGrid={[LOCALS.snapGrid, LOCALS.snapGrid]}
-        colorMode={colorMode}
-        snapToGrid
-        fitView
-      >
-        <Controls />
-        <Background />
+            setEdges((eds) =>
+                addEdge(
+                    {
+                        ...connection,
+                        data: { valid },
+                        style: valid
+                            ? undefined
+                            : { stroke: "#ff4d4f", strokeDasharray: "4 4" },
+                    },
+                    eds
+                )
+            );
+        },
+        [nodes]
+    );
 
-        <Panel position="top-right">
-          <select
-              className="xy-theme__select"
-              onChange={onChange}
-              data-testid="colormode-select"
-          >
-            <option value="dark">dark</option>
-            <option value="light">light</option>
-            <option value="system">system</option>
-          </select>
-        </Panel>
-      </ReactFlow>
-    </>
-  );
+    const isValidConnection = useCallback(
+        (connection: any) => {
+            const fromType = getHandleType(connection.source, connection.sourceHandle, nodes);
+            const toType = getHandleType(connection.target, connection.targetHandle, nodes);
+            return fromType !== null && toType !== null && canConnect(fromType, toType);
+        },
+        [nodes]
+    );
+
+    Globals.Nodes = nodes;
+
+    return (
+        <>
+            <Header />
+            <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onReconnect={onReconnect}
+                onConnect={onConnect}
+                isValidConnection={isValidConnection}
+                snapGrid={[20, 20]}
+                snapToGrid
+                colorMode={colorMode}
+                fitView
+            >
+                <Controls />
+                <Background />
+                <Panel position="top-right">
+                    <select className="xy-theme__select" onChange={onChange} data-testid="colormode-select">
+                        <option value="dark">dark</option>
+                        <option value="light">light</option>
+                        <option value="system">system</option>
+                    </select>
+                </Panel>
+            </ReactFlow>
+        </>
+    );
 };
 
 export { Globals };
