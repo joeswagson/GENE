@@ -21,17 +21,25 @@ import { Header } from './static/Header';
 import ResizableNode from './nodes/ResizableNode';
 import ResizableNodeSelected from './nodes/ResizableNodeSelected';
 import CustomResizerNode from './nodes/CustomResizerNode';
+import SignalNode from './nodes/SignalNode';
+import OutputNode from './nodes/OutputNode';
+import BridgeNode from './nodes/BridgeNode';
+import CustomEdge from './edges/CustomEdge';
 import { Globals } from './static/global';
+import { exampleNodes, exampleEdges } from './exampleNodes';
 
 
 const nodeTypes = {
   ResizableNode,
   ResizableNodeSelected,
   CustomResizerNode,
+  SignalNode,
+  OutputNode,
+  BridgeNode,
 };
 
 const edgeTypes = {
-  default: SmoothStepEdge
+  default: SmoothStepEdge,
   custom: CustomEdge,
 }
 
@@ -39,33 +47,33 @@ const nodeDefaults = {
   sourcePosition: Position.Right,
   targetPosition: Position.Left,
 };
-
+/*
 const initialNodes = [
   {
     id: '1',
-    type: 'ResizableNodeSelected',
-    position: { x: 0, y: 150 },
+    type: 'OutputNode',
+    position: { x: 0, y:100 },
     data: { label: 'default style 1' },
     ...nodeDefaults,
   },
   {
     id: '2',
-    type: 'ResizableNodeSelected',
-    position: { x: 250, y: 0 },
+    type: 'InputNode',
+    position: { x: 300, y: 0 },
     data: { label: 'default style 2' },
     ...nodeDefaults,
   },
   {
     id: '3',
-    type: 'ResizableNodeSelected',
-    position: { x: 250, y: 150 },
+    type: 'InputNode',
+    position: { x: 300, y: 100 },
     data: { label: 'default style 3' },
     ...nodeDefaults,
   },
   {
     id: '4',
-    type: 'ResizableNodeSelected',
-    position: { x: 250, y: 300 },
+    type: 'InputNode',
+    position: { x: 300, y: 200 },
     data: { label: 'default style 4' },
     ...nodeDefaults,
   },
@@ -91,6 +99,9 @@ const initialEdges = [
     markerEnd: { type: MarkerType.ArrowClosed },
   },
 ];
+*/
+const initialNodes = exampleNodes;
+const initialEdges = exampleEdges;
 
 const App = () => {
   const LOCALS = {
