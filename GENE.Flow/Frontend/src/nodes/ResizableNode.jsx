@@ -1,10 +1,10 @@
 import { memo } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
 
-const ResizableNode = ({ data }) => {
+const ResizableNode = ({ data, selected }) => {
   return (
     <>
-      <NodeResizer minWidth={100} minHeight={30} />
+      <NodeResizer minWidth={100} minHeight={30} isVisible={selected} />
       <Handle type="target" position={Position.Left} />
       <div style={{ padding: 10 }}>{data.label}</div>
       <Handle type="source" position={Position.Right} />
