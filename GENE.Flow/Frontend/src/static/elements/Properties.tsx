@@ -1,10 +1,10 @@
 export interface SizeProperties {
-    width:number;
-    height:number;
+    width: number;
+    height: number;
 
-    func:()=>void;
+    func: () => void;
 }
 
 export interface StyleProperty {
-    style:{string:any};
+    style: {};
 }
