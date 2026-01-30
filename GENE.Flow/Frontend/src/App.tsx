@@ -32,6 +32,7 @@ const nodeTypes = {
 
 const edgeTypes = {
   default: SmoothStepEdge
+  custom: CustomEdge,
 }
 
 const nodeDefaults = {
