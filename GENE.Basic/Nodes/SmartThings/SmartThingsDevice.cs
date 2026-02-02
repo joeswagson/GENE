@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
+using System.Net.Http;
 
 namespace GENE.Basic.Nodes.SmartThings {
     public class WebResponse : NodeResponse {
@@ -25,14 +26,14 @@ namespace GENE.Basic.Nodes.SmartThings {
         public string Token { internal get; set; } = token;
         public SmartThingsCommand[] Commands { get; set; } = Commands;
     }
+
     public class SmartThingsDevice(string name, string id) : INode<SmartThingsAction, WebResponse> {
         public string Name => name;
         public string DeviceId => id;
 
-        public WebResponse Signal(SmartThingsAction p)
-        {
+        public WebResponse Signal(SmartThingsAction p) {
             using var client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization =
+            client.DefaultRequestHeaders.Authorization = 
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", p.Token);
 
             var url = $"https://api.smartthings.com/v1/devices/{DeviceId}/commands";
@@ -47,9 +48,10 @@ namespace GENE.Basic.Nodes.SmartThings {
             var response = client.PostAsync(url, content).Result;
             var responseJson = response.Content.ReadAsStringAsync().Result;
 
-            Console.WriteLine("stat: {0}", response.StatusCode, response.StatusCode.ToString());
+            Console.WriteLine($"stat: {(int)response.StatusCode}{response.StatusCode.ToString()}");
+
             return new WebResponse {
-                StatusCode = (int) response.StatusCode,
+                StatusCode = (int)response.StatusCode,
                 RawJson = responseJson
             };
         }

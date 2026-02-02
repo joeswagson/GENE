@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System;
 
 namespace GENE.Basic.Nodes.SmartThings {
-    public readonly struct SmartThingsToken(string token) {
-        public readonly string Token { get; } = token;
+    public class SmartThingsToken {
+        public string Token { get; set; } = string.Empty;
     }
 }

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System;
 
 namespace GENE.Basic.Nodes.SmartThings {
     public interface ISmartSwitchable {
@@ -8,9 +6,11 @@ namespace GENE.Basic.Nodes.SmartThings {
         void Off() => Toggle(false);
         void Toggle(bool enabled);
     }
+
     public interface ISmartDimmable : ISmartSwitchable {
         void SetLevel(byte level);
     }
+
     public interface ISmartAudio : ISmartSwitchable {
         void SetVolume(byte level);
         void VolumeUp();
