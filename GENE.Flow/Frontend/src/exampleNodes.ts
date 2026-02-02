@@ -1,105 +1,201 @@
-import {MarkerType, Position} from '@xyflow/react';
-import { NodeData } from './types';
+import { MarkerType } from '@xyflow/react';
 
 export const exampleNodes = [
+  // Web Server (event source)
   {
     id: '1',
     type: 'SignalNode',
-    position: { x: 0, y: 160 }, // snapped-ish
+    position: { x: 0, y: 140 },
     data: {
-      label: 'Input Node',
+      label: 'Web Server',
       signals: [
-        { name: 'setValue', type: 'string', nullable: false },
-        { name: 'toggleState', type: 'boolean', nullable: false },
+        { name: '/tv', type: 'object', nullable: false },
+        { name: '/light', type: 'object', nullable: false },
       ],
-      nodeId: 'input-node-1',
+      nodeId: 'web-server',
     },
   },
+
+  // Activator (TV)
   {
     id: '2',
-    type: 'OutputNode',
-    position: { x: 300, y: 0 },
+    type: 'BridgeNode',
+    position: { x: 260, y: 60 },
     data: {
-      label: 'Output Node',
-      outputs: [
-        { name: 'value', type: 'string', nullable: true },
-        { name: 'state', type: 'boolean', nullable: false },
+      label: 'Activator (TV)',
+      signals: [
+        { name: 'event', type: 'object', nullable: false },
       ],
-      nodeId: 'output-node-1',
+      outputs: [
+        { name: 'action', type: 'object', nullable: false },
+      ],
+      nodeId: 'activator-tv',
     },
   },
+
+  // Activator (Bulb)
   {
     id: '3',
     type: 'BridgeNode',
-    position: { x: 300, y: 100 },
+    position: { x: 260, y: 220 },
     data: {
-      label: 'Activator',
+      label: 'Activator (Light)',
       signals: [
-        { name: 'value', type: 'number', nullable: false },
-        { name: 'activate', type: 'void', nullable: false },
+        { name: 'event', type: 'object', nullable: false },
       ],
       outputs: [
-        { name: 'value', type: 'number', nullable: false },
+        { name: 'action', type: 'object', nullable: false },
       ],
-      nodeId: 'bridge-node-1',
+      nodeId: 'activator-light',
     },
   },
+
+  // SmartThingsAction
   {
     id: '4',
     type: 'BridgeNode',
-    position: { x: 300, y: 160 },
+    position: { x: 520, y: 140 },
     data: {
-      label: 'Activator',
+      label: 'SmartThingsAction',
       signals: [
-        { name: 'value', type: 'number', nullable: false },
-        { name: 'activate', type: 'void', nullable: false },
+        { name: 'set_Token', type: 'string', nullable: false },
+        { name: 'set_Commands', type: 'array', nullable: false },
       ],
       outputs: [
-        { name: 'value', type: 'number', nullable: false },
+        { name: 'get_Commands', type: 'array', nullable: false },
       ],
-      nodeId: 'bridge-node-2',
+      nodeId: 'st-action',
     },
   },
+
+  // SmartThingsTV
   {
     id: '5',
-    type: 'OutputNode',
-    position: { x: 600, y: 160 },
+    type: 'BridgeNode',
+    position: { x: 780, y: 40 },
     data: {
-      label: 'Final Output',
-      outputs: [
-        { name: 'finalValue', type: 'string', nullable: false },
+      label: 'SmartThingsTV',
+      signals: [
+        { name: 'Toggle', type: 'boolean', nullable: false },
+        { name: 'SetVolume', type: 'number', nullable: false },
+        { name: 'LaunchApp', type: 'string', nullable: false },
       ],
-      nodeId: 'output-node-2',
+      outputs: [],
+      nodeId: 'st-tv',
+    },
+  },
+
+  // SmartThingsBulb
+  {
+    id: '6',
+    type: 'BridgeNode',
+    position: { x: 780, y: 240 },
+    data: {
+      label: 'SmartThingsBulb',
+      signals: [
+        { name: 'Toggle', type: 'boolean', nullable: false },
+        { name: 'SetLevel', type: 'number', nullable: false },
+      ],
+      outputs: [],
+      nodeId: 'st-bulb',
+    },
+  },
+
+  // WebResponse
+  {
+    id: '7',
+    type: 'OutputNode',
+    position: { x: 1040, y: 140 },
+    data: {
+      label: 'WebResponse',
+      outputs: [
+        { name: 'get_StatusCode', type: 'number', nullable: false },
+        { name: 'get_RawJson', type: 'string', nullable: false },
+      ],
+      nodeId: 'web-response',
     },
   },
 ];
 
 export const exampleEdges = [
+  // /tv → Activator (TV)
   {
-    id: 'e1-setValue-2-value',
+    id: 'e1-tv-activator',
     source: '1',
     target: '2',
-    sourceHandle: 'signal-setValue',
-    targetHandle: 'output-value',
+    sourceHandle: 'signal-/tv',
+    targetHandle: 'signal-event',
     type: 'smoothstep',
-    animated: true,
     markerEnd: { type: MarkerType.ArrowClosed },
   },
+
+  // /light → Activator (Light)
   {
-    id: 'e1-toggleState-3-process',
+    id: 'e1-light-activator',
     source: '1',
     target: '3',
-    sourceHandle: 'signal-toggleState',
-    targetHandle: 'output-process', // bridge *receives* via output side
+    sourceHandle: 'signal-/light',
+    targetHandle: 'signal-event',
+    type: 'smoothstep',
+    markerEnd: { type: MarkerType.ArrowClosed },
+  },
+
+  // Activators → SmartThingsAction
+  {
+    id: 'e2-tv-action',
+    source: '2',
+    target: '4',
+    sourceHandle: 'output-action',
+    targetHandle: 'signal-set_Commands',
     type: 'smoothstep',
     markerEnd: { type: MarkerType.ArrowClosed },
   },
   {
-    id: 'e3-result-4-finalValue',
+    id: 'e2-light-action',
     source: '3',
     target: '4',
-    sourceHandle: 'signal-result',
-    targetHandle: 'output-finalValue',
+    sourceHandle: 'output-action',
+    targetHandle: 'signal-set_Commands',
+    type: 'smoothstep',
+    markerEnd: { type: MarkerType.ArrowClosed },
+  },
+
+  // Action → Devices
+  {
+    id: 'e3-action-tv',
+    source: '4',
+    target: '5',
+    sourceHandle: 'output-get_Commands',
+    targetHandle: 'signal-Toggle',
+    type: 'smoothstep',
+    markerEnd: { type: MarkerType.ArrowClosed },
+  },
+  {
+    id: 'e3-action-bulb',
+    source: '4',
+    target: '6',
+    sourceHandle: 'output-get_Commands',
+    targetHandle: 'signal-Toggle',
+    type: 'smoothstep',
+    markerEnd: { type: MarkerType.ArrowClosed },
+  },
+
+  // Devices → WebResponse (status only, simplified)
+  {
+    id: 'e4-tv-response',
+    source: '5',
+    target: '7',
+    sourceHandle: 'signal-Toggle',
+    targetHandle: 'output-get_StatusCode',
+    type: 'smoothstep',
+    markerEnd: { type: MarkerType.ArrowClosed },
+  },
+  {
+    id: 'e4-bulb-response',
+    source: '6',
+    target: '7',
+    sourceHandle: 'signal-Toggle',
+    targetHandle: 'output-get_StatusCode',
     type: 'smoothstep',
     markerEnd: { type: MarkerType.ArrowClosed },
   },
