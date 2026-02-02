@@ -9,6 +9,7 @@ namespace GENE.CLI.Commands;
 
 public class TypistCommand : Command
 {
+    public static readonly Type Default = typeof(SmartThingsBulb);
     public override string Identifier => "typist";
 
     public override Usage Help()
@@ -16,7 +17,7 @@ public class TypistCommand : Command
         return new Usage(
             Identifier,
             "Typist reflection interface.",
-            new Argument("class", true, nameof(SmartThingsDevice)));
+            new Argument("class", true, Default.AssemblyQualifiedName));
     }
 
     public class Sample
@@ -25,7 +26,11 @@ public class TypistCommand : Command
 
     public override void Execute(string[] args)
     {
-        var className = Argument<string>(0, typeof(SmartThingsDevice).AssemblyQualifiedName);
+        var className = Argument(0, Default.AssemblyQualifiedName);
+        var quickAssembly = Argument(1, string.Empty);
+        if(quickAssembly != string.Empty)
+            className = $"{Assembly.Load(quickAssembly).GetTypes().First(t=>t.Name.Contains(className))}, {quickAssembly}, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
+        
         var type = Type.GetType(className);
         if (type is null || type.IsAssignableFrom(typeof(INode)))
             throw new ArgumentException($"{className} could not be found or does not implement {nameof(INode)}.");
