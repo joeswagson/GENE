@@ -71,5 +71,22 @@ namespace GENE.CLI.Commands.Types
             DEFAULT:
             return defaultValue ?? throw new ArgumentNullException(nameof(defaultValue));
         }
+        protected T Required<T>(int index, Func<string, T>? processor = null)
+        {
+            CheckContext();
+
+            if(index >= Context!.Length)
+                goto DEFAULT;
+            
+            var rawArg = Context![index];
+            if (_simpleTypes.TryGetValue(typeof(T), out var func))
+                return (T) func(rawArg);
+
+            if (processor != null)
+                return processor(rawArg);
+            
+            DEFAULT:
+            throw new ArgumentNullException(BadArg);
+        }
     }
 }
