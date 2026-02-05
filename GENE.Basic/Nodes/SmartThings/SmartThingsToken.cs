@@ -1,7 +1,7 @@
 using System;
 
 namespace GENE.Basic.Nodes.SmartThings {
-    public class SmartThingsToken {
-        public string Token { get; set; } = string.Empty;
+    public class SmartThingsToken(string token) {
+        public string Token { get; set; } = token;
     }
 }
