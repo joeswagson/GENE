@@ -7,30 +7,48 @@ public class SocketDaemon(int port=10070)
 {
     public readonly int Port = port;
     
-    public readonly CancellationTokenSource cts = new CancellationTokenSource();
-    private TcpListener _listener = new(IPAddress.Loopback,  port);
+    public readonly CancellationTokenSource CancellationToken = new();
+    private readonly TcpListener _listener = new(IPAddress.Loopback,  port);
     public void Start()
     {
         _listener.Start();
-        Listen().ConfigureAwait(false);
+        _ = Task.Run(Listen); // explicit background execution
     }
 
-    public async Task Listen()
+    private async Task Listen()
     {
         try
         {
-            while (true)
-                ClientStream(await _listener.AcceptSocketAsync(cts.Token));
+            while (!CancellationToken.IsCancellationRequested)
+            {
+                var socket = await _listener.AcceptSocketAsync(CancellationToken.Token)
+                    .ConfigureAwait(false);
+                
+                _ = HandleClientAsync(socket);
+            }
         }
+        catch (OperationCanceledException) { }
         catch (Exception e)
         {
             Logger.Error("Error in daemon listen loop:", e);
-            Console.WriteLine(e);
         }
     }
 
-    public async void ClientStream(Socket client)
+    private async Task HandleClientAsync(Socket client)
     {
-        Logger.Info("Client connected to server:", client.RemoteEndPoint);
+        try
+        {
+            Logger.Info("Client connected:", client.RemoteEndPoint);
+            await Task.Yield(); // placeholder for real async work
+        }
+        catch (Exception e)
+        {
+            Logger.Error("Client handler failed:", e);
+        }
+        finally
+        {
+            client.Dispose();
+        }
     }
+
 }
