@@ -1,16 +1,14 @@
 namespace GENE.Flow.Nodes;
 
 public enum EdgeDirection { NONE, IN, OUT }
-public struct FlowEdge
+public struct FlowEdge(FlowNode from, FlowNode to)
 {
-    public FlowNode Source { get; init; }
-    public FlowNode Target { get; init; }
+    public FlowNode Source { get; set; } = from;
+    public FlowNode Target { get; set; } = to;
 
     public EdgeDirection GetDirection(FlowNode reference)
     {
         if (Source == reference) return EdgeDirection.OUT;
-        if (Target == reference) return EdgeDirection.IN;
-        
-        return EdgeDirection.NONE;
+        return Target == reference ? EdgeDirection.IN : EdgeDirection.NONE;
     }
 }
