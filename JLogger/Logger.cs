@@ -1,234 +1,231 @@
-﻿using Pastel;
-using System;
-using System.Collections.Generic;
+﻿using System.Text;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Pastel;
 
 namespace JLogger
 {
-    public class Logger(string tag, Color? tagColor = null, float tagBrightnessMultiplier = 1.2f, bool debug = false)
+    public class Logger(string tag, Color? tagColor = null, bool debug = false)
     {
-        private static string FixedRepeat(string repeat, int count)
-        {
-            return string.Concat(Enumerable.Repeat(repeat, count / repeat.Length));
-        }
-
-        private static void PadConsole(int count)
-        {
-            for (int i = 0; i < count; i++)
-                Console.WriteLine();
-        }
-
-        private static string SpaceTextInMiddleOfText(string source, string target)
-        {
-            return new string(' ', Math.Max(0, source.Length / 2 - target.Length / 2)) + target;
-        }
-
-        private static string HalfSpaceTextInMiddleOfTextThatsSoUselessItsBasicallyAHardcodedMethod(string source,
-            string target)
-        {
-            return new string(' ', (int)(Math.Max(0, source.Length / 2 - target.Length / 2) / 1.5)) + target;
-        }
-
-        private static string[] MultiLineSpaceString(string source, string target)
-        {
-            string[] lines = target.Split('\n');
-            string[] output = new string[lines.Length];
-            for (int i = 0; i < lines.Length; i++)
-            {
-                string line = lines[i];
-                output[i] = SpaceTextInMiddleOfText(FixedRepeat(source, source.Length), line);
-            }
-
-            return output;
-        }
-
-        public static void LogHeader(string headerCharacter, string text, Color headerColor, Color textColor,
-            int padding, string disposable = "*")
-        {
-            string header = FixedRepeat(headerCharacter, Console.WindowWidth).Pastel(headerColor);
-            Console.WriteLine(header);
-            PadConsole(padding);
-            if (text.Split('\n').Length == 0)
-                Console.WriteLine(SpaceTextInMiddleOfText(header, text.Pastel(textColor)));
-            else
-                foreach (string line in MultiLineSpaceString(header, text.Pastel(textColor)))
-                    Console.WriteLine(line.Replace(disposable, " "));
-            PadConsole(padding);
-            Console.WriteLine(header);
-
-            Console.WriteLine();
-        }
-
-
-        public bool IsDebug = debug;
         public string Tag { get; private set; } = tag;
         public Color TagColor { get; private set; } = tagColor ?? Color.Gray;
-        public float TagBrightnessMultiplier { get; private set; } = tagBrightnessMultiplier;
+        public bool IsDebug { get; private set; } = debug;
 
-        // TODO: uhhhhh add logger methods that ARENT balls..
-        public static (int, int, int) HSL2RGB(double h, double sl, double l)
+        private static readonly object ConsoleLock = new();
+
+        #region LogStyle Flags
+
+        [Flags]
+        public enum LogStyle
+        {
+            Info = 0,
+            Warn = 1 << 0,
+            Error = 1 << 1,
+            Debug = 1 << 2
+        }
+
+        #endregion
+
+        #region Color Math
+
+        public static (int, int, int) Hsl2Rgb(double h, double sl, double l)
         {
             double r = l, g = l, b = l;
-            double v = l <= 0.5 ? l * (1.0 + sl) : l + sl - l * sl;
+            var v = l <= 0.5 ? l * (1.0 + sl) : l + sl - l * sl;
+            if (!(v > 0))
+                return (
+                    Convert.ToByte(Math.Clamp(r * 255.0, 0, 255)),
+                    Convert.ToByte(Math.Clamp(g * 255.0, 0, 255)),
+                    Convert.ToByte(Math.Clamp(b * 255.0, 0, 255))
+                );
 
-            if (v > 0)
+            var m = l + l - v;
+            var sv = (v - m) / v;
+            h *= 6.0;
+            var sextant = (int)h;
+            var fract = h - sextant;
+            var vsf = v * sv * fract;
+            var mid1 = m + vsf;
+            var mid2 = v - vsf;
+
+            switch (sextant)
             {
-                double m = l + l - v;
-                double sv = (v - m) / v;
-                h *= 6.0;
-                int sextant = (int)h;
-                double fract = h - sextant;
-                double vsf = v * sv * fract;
-                double mid1 = m + vsf;
-                double mid2 = v - vsf;
-
-                switch (sextant)
-                {
-                    case 0:
-                        r = v;
-                        g = mid1;
-                        b = m;
-                        break;
-                    case 1:
-                        r = mid2;
-                        g = v;
-                        b = m;
-                        break;
-                    case 2:
-                        r = m;
-                        g = v;
-                        b = mid1;
-                        break;
-                    case 3:
-                        r = m;
-                        g = mid2;
-                        b = v;
-                        break;
-                    case 4:
-                        r = mid1;
-                        g = m;
-                        b = v;
-                        break;
-                    case 5:
-                        r = v;
-                        g = m;
-                        b = mid2;
-                        break;
-                }
+                case 0:
+                    r = v;
+                    g = mid1;
+                    b = m;
+                    break;
+                case 1:
+                    r = mid2;
+                    g = v;
+                    b = m;
+                    break;
+                case 2:
+                    r = m;
+                    g = v;
+                    b = mid1;
+                    break;
+                case 3:
+                    r = m;
+                    g = mid2;
+                    b = v;
+                    break;
+                case 4:
+                    r = mid1;
+                    g = m;
+                    b = v;
+                    break;
+                case 5:
+                    r = v;
+                    g = m;
+                    b = mid2;
+                    break;
             }
 
-            return
-            (
+            return (
                 Convert.ToByte(Math.Clamp(r * 255.0, 0, 255)),
                 Convert.ToByte(Math.Clamp(g * 255.0, 0, 255)),
                 Convert.ToByte(Math.Clamp(b * 255.0, 0, 255))
             );
         }
 
-        // add clamping to all these types of methods lol
-        private static Color brightenColor(Color input, float amount)
+        private static Color BrightenColor(Color input, float amount)
         {
-            float hue = input.GetHue() / 360;
-            float saturation = input.GetSaturation();
-            float brightness = input.GetBrightness();
-            //Console.WriteLine($"{hue}, {saturation}, {brightness}");
-
-            (int r, int g, int b) = HSL2RGB(hue, saturation / amount, brightness * amount);
-            return Color.FromArgb(1, r, g, b);
+            var (r, g, b) = Hsl2Rgb(
+                input.GetHue() / 360,
+                input.GetSaturation() / amount,
+                input.GetBrightness() * amount
+            );
+            return Color.FromArgb(255, r, g, b);
         }
 
-        private static Color saturateColor(Color input, float amount)
+        private static Color SaturateColor(Color input, float amount)
         {
-            float hue = input.GetHue() / 360;
-            float saturation = input.GetSaturation();
-            float brightness = input.GetBrightness();
-            //Console.WriteLine($"{hue}, {saturation}, {brightness}");
-
-            (int r, int g, int b) = HSL2RGB(hue, saturation * amount, brightness);
-            return Color.FromArgb(1, r, g, b);
+            var (r, g, b) = Hsl2Rgb(
+                input.GetHue() / 360,
+                input.GetSaturation() * amount,
+                input.GetBrightness()
+            );
+            return Color.FromArgb(255, r, g, b);
         }
 
+        #endregion
 
-        public static Color ERROR_TAG_COLOR { get; internal set; } = Color.IndianRed;
-        public static Color DEBUG_TAG_COLOR { get; internal set; } = Color.HotPink;
-        public static Color WARN_TAG_COLOR { get; internal set; } = Color.Gold;
+        #region ANSI Tag Colors
 
-        public static string GetFormattedTag(string tag, Color color)
+        public static Color ErrorTagColor = Color.IndianRed;
+        public static Color DebugTagColor = Color.HotPink;
+        public static Color WarnTagColor = Color.Gold;
+
+        public static string GetFormattedTag(string tag, Color? colorNullable)
         {
-            string leading = "[".Pastel(color);
-            string trailing = "]".Pastel(color);
-            string colortag = tag.Pastel(brightenColor(saturateColor(color, 1.5f), 1.2f));
-            return $"{leading}{colortag}{trailing} ";
+            if (colorNullable is null)
+                return $"[{tag}] ";
+
+            var color = colorNullable.Value;
+            var leading = "[".Pastel(color);
+            var trailing = "]".Pastel(color);
+            var inner = tag.Pastel(BrightenColor(SaturateColor(color, 1.5f), 1.2f));
+
+            return $"{leading}{inner}{trailing} ";
         }
 
-        private string getTagString()
+        public string GetTagString(bool format = true)
+            => GetFormattedTag(Tag, format ? TagColor : null);
+
+        public static string GetErrorTag(bool format = true)
+            => GetFormattedTag("ERROR", format ? ErrorTagColor : null);
+
+        public static string GetWarnTag(bool format = true)
+            => GetFormattedTag("WARN", format ? WarnTagColor : null);
+
+        public static string GetDebugTag(bool format = true)
+            => GetFormattedTag("DEBUG", format ? DebugTagColor : null);
+
+        #endregion
+
+        #region Terminal.Gui TrueColor
+
+        private static Terminal.Gui.Drawing.Color FromSystem(Color color) => new(color.R, color.G, color.B);
+
+        public static void LogFormattedTag(string tag, Color? colorNullable)
         {
-            return GetFormattedTag(Tag, TagColor);
-            //string leading = "[".Pastel(TagColor);
-            //string trailing = "]".Pastel(TagColor);
-            //string colortag = Tag.Pastel(brightenColor(TagColor, 1.2f));
-            //return $"{leading}{colortag}{trailing} ";
-        }
-
-        public static string GetErrorTag()
-        {
-            return GetFormattedTag("ERROR", ERROR_TAG_COLOR);
-            //string leading = "[".Pastel(ERROR_TAG_COLOR);
-            //string trailing = "]".Pastel(ERROR_TAG_COLOR);
-            //string colortag = "ERROR".Pastel(brightenColor(saturateColor(ERROR_TAG_COLOR, 1.5f), 1.2f));
-            //return $"{leading}{colortag}{trailing} ";
-        }
-
-        public static string GetWarnTag()
-        {
-            return GetFormattedTag("WARN", WARN_TAG_COLOR);
-            //string leading = "[".Pastel(WARN_TAG_COLOR);
-            //string trailing = "]".Pastel(WARN_TAG_COLOR);
-            //string colortag = "WARN".Pastel(brightenColor(WARN_TAG_COLOR, 1.2f));
-            //return $"{leading}{colortag}{trailing} ";
-        }
-
-        public static string GetDebugTag()
-        {
-            return GetFormattedTag("DEBUG", DEBUG_TAG_COLOR);
-            //string leading = "[".Pastel(DEBUG_TAG_COLOR);
-            //string trailing = "]".Pastel(DEBUG_TAG_COLOR);
-            //string colortag = "DEBUG".Pastel(brightenColor(DEBUG_TAG_COLOR, 1.2f));
-            //return $"{leading}{colortag}{trailing} ";
-        }
-
-
-        static string[] NormalizeArray(object?[] input) // sucks balls but wtv cba to write a better one
-        {
-            string[] output = new string[input.Length];
-
-            for (int i = 0; i < input.Length; i++)
+            if (colorNullable is null)
             {
-                if (input[i] == null)
-                {
-                    output[i] = "null";
-                }
-                else if (input[i] is object[] nestedArray)
-                {
-                    output[i] = $"{{{string.Join(",", NormalizeArray(nestedArray))}}}";
-                }
-                else
-                {
-                    output[i] = input[i]?.ToString() ?? "[object->string failure]";
-                }
+                Tui.AppendLogRaw($"[{tag}]");
+                return;
             }
 
-            return output;
+            var color = colorNullable.Value;
+            var terminal = FromSystem(color);
+            System.Diagnostics.Debug.WriteLine("I EXIST!!!");
+            Tui.AppendLogColored("[", terminal);
+            Tui.AppendLogColored(tag, FromSystem(BrightenColor(SaturateColor(color, 1.5f), 1.2f)));
+            Tui.AppendLogColored("] ", terminal);
         }
 
+        public void AppendTagString(bool format = true)
+            => LogFormattedTag(Tag, format ? TagColor : null);
 
-        public void Newline(int count = 1)
+        public static void AppendErrorTag(bool format = true)
+            => LogFormattedTag("ERROR", format ? ErrorTagColor : null);
+
+        public static void AppendWarnTag(bool format = true)
+            => LogFormattedTag("WARN", format ? WarnTagColor : null);
+
+        public static void AppendDebugTag(bool format = true)
+            => LogFormattedTag("DEBUG", format ? DebugTagColor : null);
+
+        #endregion
+
+        #region Core Logging
+
+        // Pad console
+#pragma warning disable CA1822
+        public static void PadConsole(int count)
         {
-            PadConsole(count);
+            for (var i = 0; i < count; i++)
+                Tui.AppendLogRaw("");
         }
+
+        public void Newline(int count = 1) => PadConsole(count);
+#pragma warning restore CA1822
+
+        private void LogInternal(LogStyle style, bool newline, params object?[] args)
+        {
+            var message = string.Join(" ", args.Select(a => a?.ToString() ?? "null"));
+
+            lock (ConsoleLock)
+            {
+                // var sb = new StringBuilder();
+                // sb.Append(GetTagString());
+                AppendTagString();
+
+                if ((style & LogStyle.Error) != 0) 
+                    AppendErrorTag(); 
+                    // sb.Append(GetErrorTag());
+                if ((style & LogStyle.Warn) != 0) 
+                    AppendWarnTag(); 
+                    // sb.Append(GetWarnTag());
+                if ((style & LogStyle.Debug) != 0 && IsDebug) 
+                    AppendDebugTag(); 
+                    // sb.Append(GetDebugTag());
+
+                if (newline)
+                    Tui.AppendLog(message);
+                else
+                    Tui.AppendLogRaw(message);
+
+                // sb.Append(message);
+                // if (newline)
+                //     Tui.AppendLogAnsi(sb .ToString() + "\n");
+                // else
+                //     Tui.AppendLogAnsi(sb.ToString()); // Terminal.Gui TextField doesn't do inline, but keeping signature
+            }
+        }
+
+        // Info
+        public void Info(params object?[] args) => LogInternal(LogStyle.Info, true, args);
+        public void Info(bool newline, params object?[] args) => LogInternal(LogStyle.Info, newline, args);
 
         public void InfoSplit(string multiline)
         {
@@ -236,91 +233,22 @@ namespace JLogger
                 Log(LogStyle.Info, line);
         }
 
-        public void Info(params object?[] args)
-        {
-            //Console.WriteLine(getTagString() + string.Join(' ', args));
-            Log(LogStyle.Info, args);
-        }
+        // Warn
+        public void Warn(params object?[] args) => LogInternal(LogStyle.Warn, true, args);
+        public void Warn(bool newline, params object?[] args) => LogInternal(LogStyle.Warn, newline, args);
 
-        public void Error(params object?[] args)
-        {
-            //Console.WriteLine(getTagString() + GetErrorTag() + string.Join(' ', args));
-            Log(LogStyle.Error, args);
-        }
+        // Error
+        public void Error(params object?[] args) => LogInternal(LogStyle.Error, true, args);
+        public void Error(bool newline, params object?[] args) => LogInternal(LogStyle.Error, newline, args);
 
-        public void Warn(params object?[] args)
-        {
-            //Console.WriteLine(getTagString() + GetWarnTag() + string.Join(' ', args));
-            Log(LogStyle.Warn, args);
-        }
+        // Debug
+        public void Debug(params object?[] args) => LogInternal(LogStyle.Debug, true, args);
+        public void Debug(bool newline, params object?[] args) => LogInternal(LogStyle.Debug, newline, args);
 
-        public void Debug(params object?[] args)
-        {
-            //Console.WriteLine(getTagString() + GetDebugTag() + string.Join(' ', args));
-            Log(LogStyle.Debug, args);
-        }
+        // Combined styles
+        public void Log(LogStyle style, params object?[] args) => LogInternal(style, true, args);
+        public void Log(LogStyle style, bool newline, params object?[] args) => LogInternal(style, newline, args);
 
-        public void ErrorDebug(params object?[] args)
-        {
-            //Console.WriteLine(getTagString() + GetErrorTag() + GetDebugTag() + string.Join(' ', args));
-            Log(LogStyle.Error | LogStyle.Debug, args);
-        }
-
-        public void WarnDebug(params object?[] args)
-        {
-            //Console.WriteLine(getTagString() + GetWarnTag() + GetDebugTag() + string.Join(' ', args));
-            Log(LogStyle.Warn | LogStyle.Debug, args);
-        }
-
-        [Flags]
-        public enum LogStyle
-        {
-            Info = 0,
-            Warn = 1 << 1,
-            Error = 1 << 2,
-            Debug = 1 << 3
-        }
-
-        public void Log(LogStyle style, params object?[] args)
-        {
-            LogInternal(style, true, args);
-        }
-
-        public void LogNewline(LogStyle style, bool newline = true, params object?[] args)
-        {
-            LogInternal(style, newline, args);
-        }
-
-        private void LogInternal(LogStyle style, bool newline, params object?[] args)
-        {
-            var output = new StringBuilder(getTagString());
-
-            if ((style & LogStyle.Warn) == LogStyle.Warn)
-            {
-                output.Append(GetWarnTag());
-            }
-
-            if ((style & LogStyle.Error) == LogStyle.Error)
-            {
-                output.Append(GetErrorTag());
-            }
-
-            if ((style & LogStyle.Debug) == LogStyle.Debug)
-            {
-                if (!IsDebug)
-                    return;
-
-                output.Append(GetDebugTag());
-            }
-
-            output.Append(string.Join(' ', NormalizeArray(args)));
-            Console.Write(output.ToString() + (newline ? "\n" : ""));
-        }
-
-        public void TestStyles(params object?[] args)
-        {
-            //Console.WriteLine(getTagString() + GetErrorTag() + GetWarnTag() + GetDebugTag() + string.Join(' ', args));
-            Log(LogStyle.Info | LogStyle.Warn | LogStyle.Error | LogStyle.Debug, args);
-        }
+        #endregion
     }
 }
