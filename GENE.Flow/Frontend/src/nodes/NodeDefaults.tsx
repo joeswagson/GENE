@@ -25,53 +25,37 @@ const titleStyle = {
     fontWeight: 'bold',
 };
 
-function CreateHandle(method: MethodDefinition,
-                      i: number,
-                      data: HandlesData) {
-    const signal = data.type == SignalTypes.SIGNAL;
-    return (<Handle
+function CreateHandle(method: MethodDefinition, i: number, data: HandlesData) {
+    const isSignal = data.type === SignalTypes.SIGNAL;
 
-        key={method.name}
-
-        id={`${data.type}-${method.name}`}
-
-        type={signal ? 'source' : 'target'}
-
-        position={method.position ?? signal ? Position.Left : Position.Right}
-
-        style={{...handleStyle, top: handleY(i, 25)}}
-
-    />);
+    return (
+        <Handle
+            key={method.name}
+            id={`${data.type}-${method.name}`}
+            type={isSignal ? 'target' : 'source'}
+            position={method.position ?? (isSignal ? Position.Left : Position.Right)}
+            style={{ ...handleStyle, top: handleY(i, 25) }}
+            isConnectable={true} // <--- this is required
+        />
+    );
 }
+
 
 function CreateLabel(method: MethodDefinition, i: number) {
     return (
-
         <div key={method.name} className="label-item"
-
-        style={{...labelStyle, top: handleY(i, 25)}}
-
-        >
-
+             style={{...labelStyle, top: handleY(i, 25)}}>
             <code>{method.name}</code> ({method.type})
-
         </div>
-
     );
 }
 
 export function CreateTitle(data: NodeData) {
-
     return (
-
         <div style={titleStyle}>
-
             {data.label}
-
         </div>
-
     );
-
 }
 
 export function Handles(methods: MethodDefinition[], data: HandlesData) {
@@ -80,5 +64,4 @@ export function Handles(methods: MethodDefinition[], data: HandlesData) {
 
 export function Labels(methods: MethodDefinition[]) {
     return methods.map((m, i) => CreateLabel(m, i));
-
 }
