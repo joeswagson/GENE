@@ -5,16 +5,21 @@ using GENE.CLI.Commands.Types;
 using GENE.Clusters;
 using GENE.JoeRoom;
 using JLogger;
-using System.Drawing;
 using System.Text;
+using GENE.Flow;
+using GENE.Flow.Daemon.Protocol.JSON;
+using Spectre.Console;
+using Color = System.Drawing.Color;
 
 namespace GENE.CLI {
     public static class Meta {
         public const string VERSION = "1.0.0";
         public const bool DEBUG = true;
     }
-    public class Program {
-        static string[] ParseArgs(string input)
+    public class Program
+    {
+        private static CancellationTokenSource AppSource = new();
+        internal static string[] ParseArgs(string input)
         {
             var args = new List<string>();
             var current = new StringBuilder();
@@ -63,9 +68,46 @@ namespace GENE.CLI {
 
         public static readonly Logger logger = new("gene", Color.CornflowerBlue, debug: Meta.DEBUG);
         public static NodeCluster? CurrentCluster;
-
-        private static void Main(string[] args)
+        
+        private static async Task CommandLoop()
         {
+            while (!AppSource.IsCancellationRequested)
+            {
+                try
+                {
+                    var input = CommandDispatcher.Take(AppSource.Token);
+
+                    if (string.IsNullOrWhiteSpace(input))
+                        continue;
+
+                    var parts = ParseArgs(input);
+                    var command = parts[0];
+                    var cArgs = parts.Skip(1).ToArray();
+
+                    var commandObject = CommandRegistry.GetCommand(command);
+                    if (commandObject != null)
+                    {
+                        if (cArgs.Length == 1 && cArgs[0] == "?")
+                            logger.Info(commandObject.Help().ToString());
+                        else
+                            commandObject.ExecuteInternal(cArgs);
+                    }
+                    else
+                    {
+                        logger.Error("Command", command, "not found.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    logger.Error($"Error executing command: {e.Message}");
+                    logger.Debug(e.StackTrace ?? "");
+                }
+            }
+        }
+        
+        private static async Task Main(string[] args)
+        {
+            Tui.Create();
             logger.Info("GENE CLI");
             logger.Info("- General Environment Node Engine");
             logger.Info("- GENE Version:", Gene.Meta.VERSION);
@@ -74,42 +116,14 @@ namespace GENE.CLI {
 
             CommandRegistry.RegisterCommands();
 
-            string pat = args[0];
-            logger.Info("PAT:", pat);
-
+            logger.Info("Initializing Flow...");
+            
+            var pat = args[0];
             CurrentCluster = new RoomCluster(pat);
 
-            while (true)
-            {
-                logger.LogNewline(Logger.LogStyle.Info, false, "cmd>");
-                var input = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(input))
-                    continue;
-
-                var parts = ParseArgs(input);
-                var command = parts[0];
-                var cArgs = new string[parts.Length - 1];
-                Array.Copy(parts, 1, cArgs, 0, cArgs.Length);
-
-                try
-                {
-                    var commandObject = CommandRegistry.GetCommand(command);
-                    if (commandObject != null)
-                        if (cArgs.Length == 1 && cArgs[0] == "?")
-                            logger.Info(commandObject.Help().ToString());
-                        else
-                            commandObject.ExecuteInternal(cArgs);
-                    else
-                        logger.Error("Command", command, "not found.");
-                } catch (Exception e)
-                {
-                    logger.Error($"An error occured while executing command \"{command}\")");
-                    logger.Error($"- Error: {e.Message}");
-                    logger.Error($"- Arguments:", cArgs);
-                    logger.Debug(e.Message);
-                    logger.Debug(e.StackTrace);
-                }
-            }
+            _ = Task.Run(CommandLoop);
+            Tui.Run();
+            await Task.Delay(Timeout.Infinite);
             //var action = SmartActions.Light(light.Name, pat);
 
             //logger.Info("Signalling...");
