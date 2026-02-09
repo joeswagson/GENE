@@ -1,18 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using GENE.JoeRoom;
 
 namespace GENE.Basic.Nodes.SmartThings {
-    public class SmartThingsBulb(SmartThingsToken token, string name, string id)
+    public class SmartThingsBulb(OAuthManager OAuth, string name, string id)
         : SmartThingsDevice(name, id), ISmartDimmable {
-        private SmartThingsToken Auth = token;
-
-        public void UpdateToken(SmartThingsToken token) => Auth = token;
-
         public void Toggle(bool enabled)
         {
             Signal(
-                new SmartThingsAction(Auth.Token, new SmartThingsCommand
+                new(OAuth.GetToken().Token, new SmartThingsCommand
                 {
                     component = Name,
                     capability = "switch",
@@ -24,7 +21,7 @@ namespace GENE.Basic.Nodes.SmartThings {
         public void SetLevel(byte brightness)
         {
             Signal(
-                new SmartThingsAction(Auth.Token, new SmartThingsCommand
+                new(OAuth.GetToken().Token, new SmartThingsCommand
                 {
                     component = Name,
                     capability = "switchLevel",
