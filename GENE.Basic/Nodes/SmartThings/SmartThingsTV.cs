@@ -1,14 +1,13 @@
-﻿using GENE.Nodes;
+﻿using GENE.JoeRoom;
+using GENE.Nodes;
 
 namespace GENE.Basic.Nodes.SmartThings {
-    public class SmartThingsTV(SmartThingsToken token, string name, string id)
+    public class SmartThingsTv(OAuthManager oAuth, string name, string id)
         : SmartThingsDevice(name, id), ISmartAudio {
-        private SmartThingsToken Auth = token;
-        public void UpdateToken(SmartThingsToken token) => Auth = token;
         private void Send(string capability, string command, params object[] args)
         {
             Signal(
-                new(Auth.Token,
+                new(oAuth.GetToken().Token,
                     new SmartThingsCommand {
                         component = "main",
                         capability = capability,
