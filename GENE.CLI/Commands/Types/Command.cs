@@ -17,20 +17,25 @@ namespace GENE.CLI.Commands.Types
         public abstract string Identifier { get; }
         public abstract Usage Help();
 
-        private string[]? Context;
-
-        internal void ExecuteInternal(string[] args)
+        private string[]? _context;
+        internal int ExecuteInternal(string[] args)
         {
-            Context = args;
-            Execute(args);
-            Context = null;
+            _context = args;
+            var result = Execute(args);
+            if (result is Exception ex)
+            {
+                Logger.Error(ex.Message);
+                return ex.HResult;
+            }
+            _context = null;
+            return (int) result;
         }
 
-        public abstract void Execute(string[] args);
+        public abstract object Execute(string[] args);
 
         private void CheckContext()
         {
-            if (Context == null)
+            if (_context == null)
                 throw new InvalidOperationException(BadOp);
         }
 
@@ -58,10 +63,10 @@ namespace GENE.CLI.Commands.Types
         {
             CheckContext();
 
-            if(index >= Context!.Length)
+            if(index >= _context!.Length)
                 goto DEFAULT;
             
-            var rawArg = Context![index];
+            var rawArg = _context![index];
             if (_simpleTypes.TryGetValue(typeof(T), out var func))
                 return (T) func(rawArg);
 
@@ -75,10 +80,10 @@ namespace GENE.CLI.Commands.Types
         {
             CheckContext();
 
-            if(index >= Context!.Length)
+            if(index >= _context!.Length)
                 goto DEFAULT;
             
-            var rawArg = Context![index];
+            var rawArg = _context![index];
             if (_simpleTypes.TryGetValue(typeof(T), out var func))
                 return (T) func(rawArg);
 
