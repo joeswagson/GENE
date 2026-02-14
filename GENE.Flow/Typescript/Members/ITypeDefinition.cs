@@ -16,6 +16,8 @@ public interface ITypeDefinition<T> : ITypeDefinition
 
 public interface IMember
 {
+    public string Name { get; }
+    public ITypeDefinition Type { get; }
     public string ToString();
 }
 
