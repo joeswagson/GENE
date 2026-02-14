@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="Pastel" Version="7.0.0" />
-    <PackageReference Include="Terminal.Gui" Version="2.0.0-develop.4994" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,5 +15,4 @@
       <HintPath>..\..\..\.nuget\packages\spectre.console\0.53.1\lib\net9.0\Spectre.Console.dll</HintPath>
     </Reference>
   </ItemGroup>
-
 </Project>
