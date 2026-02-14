@@ -116,17 +116,18 @@ namespace JLogger
         public static Color DebugTagColor = Color.HotPink;
         public static Color WarnTagColor = Color.Gold;
 
-        public static string GetFormattedTag(string tag, Color? colorNullable)
+        public static string GetFormattedTag(string tag, Color? colorNullable, bool space = true)
         {
+            var suffix = space ? " " : string.Empty;
             if (colorNullable is null)
-                return $"[{tag}] ";
+                return $"[{tag}]{suffix}";
 
             var color = colorNullable.Value;
             var leading = "[".Pastel(color);
             var trailing = "]".Pastel(color);
             var inner = tag.Pastel(BrightenColor(SaturateColor(color, 1.5f), 1.2f));
 
-            return $"{leading}{inner}{trailing} ";
+            return $"{leading}{inner}{trailing}{suffix}";
         }
 
         public string GetTagString(bool format = true)
@@ -145,22 +146,23 @@ namespace JLogger
 
         #region Terminal.Gui TrueColor
 
-        private static Terminal.Gui.Drawing.Color FromSystem(Color color) => new(color.R, color.G, color.B);
+        // private static Terminal.Gui.Drawing.Color FromSystem(Color color) => new(color.R, color.G, color.B);
 
-        public static void LogFormattedTag(string tag, Color? colorNullable)
+        private static void LogFormattedTag(string tag, Color? colorNullable)
         {
-            if (colorNullable is null)
-            {
-                Tui.AppendLogRaw($"[{tag}]");
-                return;
-            }
-
-            var color = colorNullable.Value;
-            var terminal = FromSystem(color);
-            System.Diagnostics.Debug.WriteLine("I EXIST!!!");
-            Tui.AppendLogColored("[", terminal);
-            Tui.AppendLogColored(tag, FromSystem(BrightenColor(SaturateColor(color, 1.5f), 1.2f)));
-            Tui.AppendLogColored("] ", terminal);
+            throw new NotImplementedException();
+            // if (colorNullable is null)
+            // {
+            //     Tui.AppendLogRaw($"[{tag}]");
+            //     return;
+            // }
+            //
+            // var color = colorNullable.Value;
+            // var terminal = FromSystem(color);
+            // System.Diagnostics.Debug.WriteLine("I EXIST!!!");
+            // Tui.AppendLogColored("[",  terminal);
+            // Tui.AppendLogColored(tag,  FromSystem(BrightenColor(SaturateColor(color, 1.5f), 1.2f)));
+            // Tui.AppendLogColored("] ", terminal);
         }
 
         public void AppendTagString(bool format = true)
@@ -181,10 +183,22 @@ namespace JLogger
 
         // Pad console
 #pragma warning disable CA1822
+
+        private static void WriteText(string text)
+        {
+            Console.Write(text);
+        }
+
+        private static void WriteLine(string text)
+        {
+            Console.WriteLine(text);
+        }
+
         public static void PadConsole(int count)
         {
             for (var i = 0; i < count; i++)
-                Tui.AppendLogRaw("");
+                WriteLine("");
+            // Tui.AppendLogRaw("");
         }
 
         public void Newline(int count = 1) => PadConsole(count);
@@ -196,35 +210,38 @@ namespace JLogger
 
             lock (ConsoleLock)
             {
-                // var sb = new StringBuilder();
-                // sb.Append(GetTagString());
-                AppendTagString();
+                var sb = new StringBuilder();
+                sb.Append(GetTagString());
+                // AppendTagString();
 
-                if ((style & LogStyle.Error) != 0) 
-                    AppendErrorTag(); 
-                    // sb.Append(GetErrorTag());
-                if ((style & LogStyle.Warn) != 0) 
-                    AppendWarnTag(); 
-                    // sb.Append(GetWarnTag());
-                if ((style & LogStyle.Debug) != 0 && IsDebug) 
-                    AppendDebugTag(); 
-                    // sb.Append(GetDebugTag());
+                if ((style & LogStyle.Error) != 0)
+                    // AppendErrorTag(); 
+                    sb.Append(GetErrorTag());
+                if ((style & LogStyle.Warn) != 0)
+                    // AppendWarnTag(); 
+                    sb.Append(GetWarnTag());
+                if ((style & LogStyle.Debug) != 0)
+                    if (!IsDebug)
+                        return;
+                    else
+                        // AppendDebugTag(); 
+                        sb.Append(GetDebugTag());
 
-                if (newline)
-                    Tui.AppendLog(message);
-                else
-                    Tui.AppendLogRaw(message);
-
-                // sb.Append(message);
                 // if (newline)
-                //     Tui.AppendLogAnsi(sb .ToString() + "\n");
+                // Tui.AppendLog(message);
                 // else
-                //     Tui.AppendLogAnsi(sb.ToString()); // Terminal.Gui TextField doesn't do inline, but keeping signature
+                // Tui.AppendLogRaw(message);
+
+                sb.Append(message);
+                if (newline)
+                    WriteLine(sb.ToString());
+                else
+                    WriteText(sb.ToString());
             }
         }
 
         // Info
-        public void Info(params object?[] args) => LogInternal(LogStyle.Info, true, args);
+        public void Info(params object?[] args) => LogInternal(LogStyle.Info,               true,    args);
         public void Info(bool newline, params object?[] args) => LogInternal(LogStyle.Info, newline, args);
 
         public void InfoSplit(string multiline)
@@ -234,19 +251,19 @@ namespace JLogger
         }
 
         // Warn
-        public void Warn(params object?[] args) => LogInternal(LogStyle.Warn, true, args);
+        public void Warn(params object?[] args) => LogInternal(LogStyle.Warn,               true,    args);
         public void Warn(bool newline, params object?[] args) => LogInternal(LogStyle.Warn, newline, args);
 
         // Error
-        public void Error(params object?[] args) => LogInternal(LogStyle.Error, true, args);
+        public void Error(params object?[] args) => LogInternal(LogStyle.Error,               true,    args);
         public void Error(bool newline, params object?[] args) => LogInternal(LogStyle.Error, newline, args);
 
         // Debug
-        public void Debug(params object?[] args) => LogInternal(LogStyle.Debug, true, args);
+        public void Debug(params object?[] args) => LogInternal(LogStyle.Debug,               true,    args);
         public void Debug(bool newline, params object?[] args) => LogInternal(LogStyle.Debug, newline, args);
 
         // Combined styles
-        public void Log(LogStyle style, params object?[] args) => LogInternal(style, true, args);
+        public void Log(LogStyle style, params object?[] args) => LogInternal(style,               true,    args);
         public void Log(LogStyle style, bool newline, params object?[] args) => LogInternal(style, newline, args);
 
         #endregion
