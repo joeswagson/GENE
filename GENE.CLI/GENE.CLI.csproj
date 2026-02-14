@@ -14,5 +14,9 @@
     <ProjectReference Include="..\GENE\GENE.csproj" />
     <ProjectReference Include="..\JLogger\JLogger.csproj" />
   </ItemGroup>
-
+  
+  <Target Name="RenameOutput" AfterTargets="Build">
+    <Move SourceFiles="$(OutputPath)$(AssemblyName)"
+          DestinationFiles="$(OutputPath)gene" />
+  </Target>
 </Project>
