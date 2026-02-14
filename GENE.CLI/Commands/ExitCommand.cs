@@ -7,8 +7,9 @@ public class ExitCommand : Command
     public override string Identifier => "exit";
     public override Usage Help() => new(Identifier, "Closes the program.");
 
-    public override void Execute(string[] args)
+    public override object Execute(string[] args)
     {
         Environment.Exit(0);
+        return 0;
     }
 }

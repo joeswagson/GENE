@@ -14,27 +14,24 @@ namespace GENE.CLI.Commands
         {
             return new Usage("help", "Shows this help message");
         }
-        public override void Execute(string[] args)
+        public override object Execute(string[] args)
         {
             if (args.Length == 0)
-            {
-                foreach (Command command in CommandRegistry.GetCommands())
-                {
-                    logger.Info(command.Help().ToString());
-                }
-            }
+                foreach (var command in CommandRegistry.GetCommands())
+                    Logger.Info(command.Help().ToString());
             else
             {
                 var command = CommandRegistry.GetCommand(args[0]);
                 if (command != null)
-                {
-                    logger.Info(command.Help().ToString());
-                }
+                    Logger.Info(command.Help().ToString());
                 else
                 {
-                    logger.Info("Command not found");
+                    Logger.Info("Command not found");
+                    return 1;
                 }
             }
+            
+            return 0;
         }
     }
 }

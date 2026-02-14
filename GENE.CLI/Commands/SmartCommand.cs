@@ -28,13 +28,13 @@ namespace GENE.CLI.Commands {
     public class SmartCommand : Command {
         public override string Identifier => "smart";
 
-        public override void Execute(string[] args)
+        public override object Execute(string[] args)
         {
             if (CurrentCluster == null)
-                throw new InvalidOperationException("No cluster selected.");
+                return new InvalidOperationException("No cluster selected.");
 
             if (args.Length < 2)
-                throw new ArgumentException("Usage: smart <device> <action> [args...]");
+                return new ArgumentException("Usage: smart <device> <action> [args...]");
 
             var deviceName = args[0];
             var action = Enum.Parse<SmartAction>(args[1], ignoreCase: true);
@@ -47,10 +47,10 @@ namespace GENE.CLI.Commands {
                 case SmartAction.power:
                 {
                     if (device is not ISmartSwitchable switchable)
-                        throw new InvalidOperationException("Device does not support switching on and off.");
+                        return new InvalidOperationException("Device does not support switching on and off.");
 
                     if (args.Length < 3)
-                        throw new ArgumentException("Usage: smart <device> power <true|false>");
+                        return new ArgumentException("Usage: smart <device> power <true|false>");
 
                     var state = bool.Parse(args[2]);
                     switchable.Toggle(state);
@@ -61,10 +61,10 @@ namespace GENE.CLI.Commands {
                 case SmartAction.level:
                 {
                     if (device is not ISmartDimmable dimmable)
-                        throw new InvalidOperationException("Device does not support brightness.");
+                        return new InvalidOperationException("Device does not support brightness.");
 
                     if (args.Length < 3)
-                        throw new ArgumentException("Usage: smart <device> level <0-100>");
+                        return new ArgumentException("Usage: smart <device> level <0-100>");
 
                     dimmable.SetLevel(byte.Parse(args[2]));
                     break;
@@ -74,7 +74,7 @@ namespace GENE.CLI.Commands {
                 case SmartAction.volume:
                 {
                     if (device is not ISmartAudio audio)
-                        throw new InvalidOperationException("Device does not support volume.");
+                        return new InvalidOperationException("Device does not support volume.");
 
                     audio.SetVolume(byte.Parse(args[2]));
                     break;
@@ -99,29 +99,31 @@ namespace GENE.CLI.Commands {
                 // ---------- TV ONLY ----------
                 case SmartAction.source:
                 {
-                    Require<SmartThingsTV>(device).ChangeSource(args[2]);
+                    Require<SmartThingsTv>(device).ChangeSource(args[2]);
                     break;
                 }
 
                 case SmartAction.home:
-                    Require<SmartThingsTV>(device).Home();
+                    Require<SmartThingsTv>(device).Home();
                     break;
 
                 case SmartAction.back:
-                    Require<SmartThingsTV>(device).Back();
+                    Require<SmartThingsTv>(device).Back();
                     break;
 
                 case SmartAction.play:
-                    Require<SmartThingsTV>(device).Play();
+                    Require<SmartThingsTv>(device).Play();
                     break;
 
                 case SmartAction.pause:
-                    Require<SmartThingsTV>(device).Pause();
+                    Require<SmartThingsTv>(device).Pause();
                     break;
 
                 default:
-                    throw new NotSupportedException($"Unsupported action: {action}");
+                    return new NotSupportedException($"Unsupported action: {action}");
             }
+
+            return 0;
         }
 
         private static T Require<T>(SmartThingsDevice device) where T : class

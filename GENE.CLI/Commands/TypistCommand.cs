@@ -24,7 +24,7 @@ public class TypistCommand : Command
     {
     }
 
-    public override void Execute(string[] args)
+    public override object Execute(string[] args)
     {
         var className = Argument(0, Default.AssemblyQualifiedName);
         var quickAssembly = Argument(1, string.Empty);
@@ -37,8 +37,10 @@ public class TypistCommand : Command
 
         var typistNode = Typist.Convert(type, typeof(SmartThingsAction), typeof(WebResponse));
         
-        logger.InfoSplit(typistNode.Root.ToString());
-        logger.InfoSplit(typistNode.Payload?.ToString() ?? "no payload");
-        logger.InfoSplit(typistNode.Response?.ToString() ?? "no response");
+        Logger.InfoSplit(typistNode.Root.ToString());
+        Logger.InfoSplit(typistNode.Payload?.ToString() ?? "no payload");
+        Logger.InfoSplit(typistNode.Response?.ToString() ?? "no response");
+
+        return 0;
     }
 }

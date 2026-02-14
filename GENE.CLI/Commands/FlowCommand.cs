@@ -11,25 +11,28 @@ public enum FlowCommandAction
     ack,
     daemon
 }
+
 public class FlowCommand : Command
 {
     public override string Identifier => "flow";
     public override Usage Help() => new("flow", "Interface with the Flow backend and app.");
 
-    public override void Execute(string[] args)
+    public override object Execute(string[] args)
     {
         var cmd = Required(0, Enum.Parse<FlowCommandAction>);
         switch (cmd)
         {
             case FlowCommandAction.ack:
                 var ack = new Ack("Test Message");
-                logger.Info(Serial.Encode(ack));
+                Logger.Info(Serial.Encode(ack));
                 break;
             case FlowCommandAction.daemon:
                 new SocketDaemon().Start();
                 break;
             default:
-                throw new ArgumentOutOfRangeException();
+                return new ArgumentOutOfRangeException(nameof(cmd), cmd.ToString(), "Unknown FlowCommandAction");
         }
+
+        return 0;
     }
 }
