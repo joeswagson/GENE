@@ -4352,6 +4352,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\GENE\GENE.csproj" />
+      <ProjectReference Include="..\JLogger\JLogger.csproj" />
     </ItemGroup>
 
 </Project>
