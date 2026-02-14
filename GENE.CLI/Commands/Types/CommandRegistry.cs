@@ -13,7 +13,7 @@ namespace GENE.CLI.Commands.Types
         public static void RegisterCommand(Command command)
         {
             Commands.Add(command.Identifier, command);
-            logger.Info("Registered command", command.Identifier);
+            Logger.Debug("Registered command", command.Identifier);
         }
 
         public static Command? GetCommand(string command)
@@ -35,9 +35,11 @@ namespace GENE.CLI.Commands.Types
             try
             {
                 RegisterCommand(new HelpCommand());
+                RegisterCommand(new ExitCommand());
                 RegisterCommand(new SmartCommand());
                 RegisterCommand(new TypistCommand());
                 RegisterCommand(new FlowCommand());
+                RegisterCommand(new NodeCommand());
                 return true;
             }
             catch
