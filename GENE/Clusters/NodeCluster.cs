@@ -9,8 +9,9 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace GENE.Clusters {
-    public class NodeCluster {
-        public NodeCluster(INode[] nodes)
+    public class NodeCluster(string? id = null) {
+        public string Id = id ?? Guid.NewGuid().ToString();
+        protected NodeCluster(INode[] nodes) : this()
         {
             Update(nodes);
         }
@@ -18,6 +19,13 @@ namespace GENE.Clusters {
         {
             using var ms = new MemoryStream(data);
             using var reader = new BinaryReader(ms);
+
+            var nodeCount = reader.ReadInt32();
+            var nodes = new INode[nodeCount];
+            for (int i = 0; i < nodeCount; i++)
+                nodes[i] = DeserializeNode();
+
+            return new(nodes);
 
             INode DeserializeNode()
             {
@@ -30,13 +38,6 @@ namespace GENE.Clusters {
 
                 return node;
             }
-
-            var nodeCount = reader.ReadInt32();
-            var nodes = new INode[nodeCount];
-            for (int i = 0; i < nodeCount; i++)
-                nodes[i] = DeserializeNode();
-
-            return new(nodes);
         }
 
         public static byte[] Serialize(NodeCluster cluster)
@@ -76,7 +77,8 @@ namespace GENE.Clusters {
 
 
         public INode[] Nodes = [];
-        public void Update(INode[] nodes)
+
+        protected void Update(INode[] nodes)
         {
             Shutdown();
             Nodes = nodes;
@@ -92,10 +94,17 @@ namespace GENE.Clusters {
                 node.Shutdown();
         }
 
-        public void Initialize()
+        protected void Initialize()
         {
             foreach (var node in Nodes)
-                node.Initialize();
+                try
+                {
+                    node.Initialize();
+                }
+                catch
+                {
+                    
+                }
         }
     }
 }
