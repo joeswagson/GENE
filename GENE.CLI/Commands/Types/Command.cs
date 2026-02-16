@@ -41,7 +41,7 @@ namespace GENE.CLI.Commands.Types
 
                 Logger.Error(ex.Message);
                 if(unhandledException)
-                    Logger.Debug(ex.StackTrace);
+                    Logger.DebugSplit(ex.StackTrace);
                 
                 return ex.HResult;
             }
@@ -110,7 +110,7 @@ namespace GENE.CLI.Commands.Types
                 return processor(rawArg);
 
             DEFAULT:
-            throw new ArgumentNullException(BadArg);
+            throw new ArgumentNullException(index.ToString(), BadArg);
         }
     }
 }
