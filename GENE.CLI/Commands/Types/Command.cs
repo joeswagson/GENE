@@ -18,17 +18,36 @@ namespace GENE.CLI.Commands.Types
         public abstract Usage Help();
 
         private string[]? _context;
+
         internal int ExecuteInternal(string[] args)
         {
             _context = args;
-            var result = Execute(args);
+            object result;
+            var unhandledException = false;
+            try
+            {
+                result = Execute(args);
+            }
+            catch (Exception unhandled)
+            {
+                result = unhandled;
+                unhandledException = true;
+            }
+
             if (result is Exception ex)
             {
+                if(unhandledException)
+                    Logger.Error("Unhandled Exception!");
+
                 Logger.Error(ex.Message);
+                if(unhandledException)
+                    Logger.Debug(ex.StackTrace);
+                
                 return ex.HResult;
             }
+
             _context = null;
-            return (int) result;
+            return (int)result;
         }
 
         public abstract object Execute(string[] args);
@@ -39,8 +58,7 @@ namespace GENE.CLI.Commands.Types
                 throw new InvalidOperationException(BadOp);
         }
 
-        private readonly Dictionary<Type, Func<string, object>> _simpleTypes = new()
-        {
+        private readonly Dictionary<Type, Func<string, object>> _simpleTypes = new() {
             { typeof(bool), s => bool.Parse(s) },
             { typeof(byte), s => byte.Parse(s) },
             { typeof(sbyte), s => sbyte.Parse(s) },
@@ -63,33 +81,34 @@ namespace GENE.CLI.Commands.Types
         {
             CheckContext();
 
-            if(index >= _context!.Length)
+            if (index >= _context!.Length)
                 goto DEFAULT;
-            
+
             var rawArg = _context![index];
             if (_simpleTypes.TryGetValue(typeof(T), out var func))
-                return (T) func(rawArg);
+                return (T)func(rawArg);
 
             if (processor != null)
                 return processor(rawArg);
-            
+
             DEFAULT:
             return defaultValue;
         }
+
         protected T Required<T>(int index, Func<string, T>? processor = null)
         {
             CheckContext();
 
-            if(index >= _context!.Length)
+            if (index >= _context!.Length)
                 goto DEFAULT;
-            
+
             var rawArg = _context![index];
             if (_simpleTypes.TryGetValue(typeof(T), out var func))
-                return (T) func(rawArg);
+                return (T)func(rawArg);
 
             if (processor != null)
                 return processor(rawArg);
-            
+
             DEFAULT:
             throw new ArgumentNullException(BadArg);
         }
