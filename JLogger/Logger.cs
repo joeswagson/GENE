@@ -243,28 +243,31 @@ namespace JLogger
         // Info
         public void Info(params object?[] args) => LogInternal(LogStyle.Info,               true,    args);
         public void Info(bool newline, params object?[] args) => LogInternal(LogStyle.Info, newline, args);
-
-        public void InfoSplit(string multiline)
-        {
-            foreach (var line in multiline.Split('\n'))
-                Log(LogStyle.Info, line);
-        }
+        public void InfoSplit(string multiline) => LogSplit(LogStyle.Info, multiline);
 
         // Warn
         public void Warn(params object?[] args) => LogInternal(LogStyle.Warn,               true,    args);
         public void Warn(bool newline, params object?[] args) => LogInternal(LogStyle.Warn, newline, args);
+        public void WarnSplit(string multiline) => LogSplit(LogStyle.Warn, multiline);
 
         // Error
         public void Error(params object?[] args) => LogInternal(LogStyle.Error,               true,    args);
         public void Error(bool newline, params object?[] args) => LogInternal(LogStyle.Error, newline, args);
+        public void ErrorSplit(string multiline) => LogSplit(LogStyle.Error, multiline);
 
         // Debug
         public void Debug(params object?[] args) => LogInternal(LogStyle.Debug,               true,    args);
         public void Debug(bool newline, params object?[] args) => LogInternal(LogStyle.Debug, newline, args);
+        public void DebugSplit(string multiline) => LogSplit(LogStyle.Debug, multiline);
 
         // Combined styles
         public void Log(LogStyle style, params object?[] args) => LogInternal(style,               true,    args);
         public void Log(LogStyle style, bool newline, params object?[] args) => LogInternal(style, newline, args);
+        public void LogSplit(LogStyle style, string multiline)
+        {
+            foreach (var line in multiline.Split('\n'))
+                Log(style, line);
+        }
 
         #endregion
     }
