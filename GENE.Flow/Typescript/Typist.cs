@@ -17,79 +17,43 @@ public static class Typist
 {
     // wtf is this rider
     private static readonly Dictionary<Type, ITypeDefinition> Simples = new() {
-        {
-            typeof(bool), SimpleTypes.Bool
-        }, {
-            typeof(byte), SimpleTypes.Byte
-        }, {
-            typeof(sbyte), SimpleTypes.SByte
-        }, {
-            typeof(char), SimpleTypes.Char
-        }, {
-            typeof(decimal), SimpleTypes.Decimal
-        }, {
-            typeof(double), SimpleTypes.Double
-        }, {
-            typeof(float), SimpleTypes.Float
-        }, {
-            typeof(int), SimpleTypes.Int32
-        }, {
-            typeof(uint), SimpleTypes.UInt32
-        }, {
-            typeof(nint), SimpleTypes.IntPtr
-        }, {
-            typeof(nuint), SimpleTypes.UIntPtr
-        }, {
-            typeof(long), SimpleTypes.Int64
-        }, {
-            typeof(ulong), SimpleTypes.UInt64
-        }, {
-            typeof(short), SimpleTypes.Int16
-        }, {
-            typeof(ushort), SimpleTypes.UInt16
-        }, {
-            typeof(string), SimpleTypes.String
-        }, {
-            typeof(object), SimpleTypes.Object
-        }
+        { typeof(bool), SimpleTypes.Bool },
+        { typeof(byte), SimpleTypes.Byte },
+        { typeof(sbyte), SimpleTypes.SByte },
+        { typeof(char), SimpleTypes.Char },
+        { typeof(decimal), SimpleTypes.Decimal },
+        { typeof(double), SimpleTypes.Double },
+        { typeof(float), SimpleTypes.Float },
+        { typeof(int), SimpleTypes.Int32 },
+        { typeof(uint), SimpleTypes.UInt32 },
+        { typeof(nint), SimpleTypes.IntPtr },
+        { typeof(nuint), SimpleTypes.UIntPtr },
+        { typeof(long), SimpleTypes.Int64 },
+        { typeof(ulong), SimpleTypes.UInt64 },
+        { typeof(short), SimpleTypes.Int16 },
+        { typeof(ushort), SimpleTypes.UInt16 },
+        { typeof(string), SimpleTypes.String },
+        { typeof(object), SimpleTypes.Object }
     };
 
     private static readonly Dictionary<Type, ITypeDefinition> NullableSimples = new() {
-        {
-            typeof(bool), SimpleTypes.NullableBool
-        }, {
-            typeof(byte), SimpleTypes.NullableByte
-        }, {
-            typeof(sbyte), SimpleTypes.NullableSByte
-        }, {
-            typeof(char), SimpleTypes.NullableChar
-        }, {
-            typeof(decimal), SimpleTypes.NullableDecimal
-        }, {
-            typeof(double), SimpleTypes.NullableDouble
-        }, {
-            typeof(float), SimpleTypes.NullableFloat
-        }, {
-            typeof(int), SimpleTypes.NullableInt32
-        }, {
-            typeof(uint), SimpleTypes.NullableUInt32
-        }, {
-            typeof(nint), SimpleTypes.NullableIntPtr
-        }, {
-            typeof(nuint), SimpleTypes.NullableUIntPtr
-        }, {
-            typeof(long), SimpleTypes.NullableInt64
-        }, {
-            typeof(ulong), SimpleTypes.NullableUInt64
-        }, {
-            typeof(short), SimpleTypes.NullableInt16
-        }, {
-            typeof(ushort), SimpleTypes.NullableUInt16
-        }, {
-            typeof(string), SimpleTypes.NullableString
-        }, {
-            typeof(object), SimpleTypes.NullableObject
-        }
+        { typeof(bool), SimpleTypes.NullableBool },
+        { typeof(byte), SimpleTypes.NullableByte },
+        { typeof(sbyte), SimpleTypes.NullableSByte },
+        { typeof(char), SimpleTypes.NullableChar },
+        { typeof(decimal), SimpleTypes.NullableDecimal },
+        { typeof(double), SimpleTypes.NullableDouble },
+        { typeof(float), SimpleTypes.NullableFloat },
+        { typeof(int), SimpleTypes.NullableInt32 },
+        { typeof(uint), SimpleTypes.NullableUInt32 },
+        { typeof(nint), SimpleTypes.NullableIntPtr },
+        { typeof(nuint), SimpleTypes.NullableUIntPtr },
+        { typeof(long), SimpleTypes.NullableInt64 },
+        { typeof(ulong), SimpleTypes.NullableUInt64 },
+        { typeof(short), SimpleTypes.NullableInt16 },
+        { typeof(ushort), SimpleTypes.NullableUInt16 },
+        { typeof(string), SimpleTypes.NullableString },
+        { typeof(object), SimpleTypes.NullableObject }
     };
 
     // Assuming TupleDefinition is defined in the namespace GENE.Flow.Typescript.Members.Data
@@ -133,7 +97,7 @@ public static class Typist
         {
             _type = type;
             Interfaces = interfaces;
-            
+
             List<IMember> signal = [];
             List<IMember> output = [];
 
@@ -231,15 +195,15 @@ public static class Typist
                     nullable
                 );
             }
-            
-            if(Interfaces?.Any(t=>t.Name == type.Name) ?? false)
-                return new SimpleType<object>(type.Name, s=>s, nullable);
+
+            if (Interfaces?.Any(t => t.Name == type.Name) ?? false)
+                return new SimpleType<object>(type.Name, s => s, nullable);
 
             return nullable ? AnyType.NullInstance : AnyType.Instance;
         }
 
 
-        private IMember? Field(FieldInfo field) => CreateMember(field.Name, field.FieldType);
+        private IMember? Field(FieldInfo field) => CreateMember(field.Name,             field.FieldType);
         private IMember? Property(PropertyInfo property) => CreateMember(property.Name, property.PropertyType);
 
         private readonly NullabilityInfoContext _nullability = new();
@@ -266,6 +230,7 @@ public static class Typist
     }
 
     public static TypistNode Convert(Type type, params Type[] interfaces) => new(type, interfaces);
+
     public class TypistNode
     {
         public readonly NodeConverter Root;
@@ -283,7 +248,7 @@ public static class Typist
                                      i.GetGenericTypeDefinition() == typeof(INode<,>));
             if (inode is null) return;
             var genericTypes = inode.GetGenericArguments();
-            Payload = new NodeConverter(genericTypes[0], interfaces);
+            Payload = new NodeConverter(genericTypes[0],  interfaces);
             Response = new NodeConverter(genericTypes[1], interfaces);
         }
     }
