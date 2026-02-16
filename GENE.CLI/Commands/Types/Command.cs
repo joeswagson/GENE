@@ -12,7 +12,7 @@ namespace GENE.CLI.Commands.Types
     public abstract class Command
     {
         private const string BadOp = "An argument acquisition was attempted without an exeuction context.";
-        private const string BadArg = "Failed to construct argument at index";
+        private static string BadArg(string type) => $"Failed to construct {type} argument at index";
 
         public abstract string Identifier { get; }
         public abstract Usage Help();
@@ -110,7 +110,7 @@ namespace GENE.CLI.Commands.Types
                 return processor(rawArg);
 
             DEFAULT:
-            throw new ArgumentNullException(index.ToString(), BadArg);
+            throw new ArgumentNullException(index.ToString(), BadArg(typeof(T).Name));
         }
     }
 }
