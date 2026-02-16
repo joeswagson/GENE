@@ -9,9 +9,9 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace GENE.Clusters {
-    public class NodeCluster(string? id = null) {
+    public class NodeCluster(string? id) {
         public string Id = id ?? Guid.NewGuid().ToString();
-        protected NodeCluster(INode[] nodes) : this()
+        protected NodeCluster(INode[] nodes, string? id = null) : this(id)
         {
             Update(nodes);
         }

@@ -9,7 +9,7 @@ namespace GENE.JoeRoom
 {
     public class RoomCluster : NodeCluster
     {
-        public RoomCluster()
+        public RoomCluster(string? id = null) : base(id)
         {
             List<INode> nodes = [
                 Ceiling,
