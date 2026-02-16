@@ -59,7 +59,7 @@ namespace GENE.CLI.Commands.Types
             { typeof(string), s => s },
         };
 
-        protected T Argument<T>(int index, T? defaultValue = default, Func<string, T>? processor = null)
+        protected T? Argument<T>(int index, T? defaultValue = default, Func<string, T>? processor = null)
         {
             CheckContext();
 
@@ -74,7 +74,7 @@ namespace GENE.CLI.Commands.Types
                 return processor(rawArg);
             
             DEFAULT:
-            return defaultValue ?? throw new ArgumentNullException(nameof(defaultValue));
+            return defaultValue;
         }
         protected T Required<T>(int index, Func<string, T>? processor = null)
         {
