@@ -19,8 +19,8 @@ namespace GENE.Nodes {
         public string Name { get; }
         public NodeStatus GetStatus() => EmptyStatus.EMPTY;
 
-        public virtual void Initialize() { }
-        public virtual void Shutdown() { }
+        public void Initialize() { }
+        public void Shutdown() { }
     }
     public interface INode<P, R> : INode
         where P : NodePayload
